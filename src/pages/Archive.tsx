@@ -27,7 +27,7 @@ export default function Archive() {
               return (
                 <li key={d.n}>
                   {open ? (
-                    <Link to={today ? '/' : `/day/${d.n}`} className={`${base} ${today ? 'bg-sun' : 'bg-paper'} shadow-[4px_4px_0_#161616] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5`}>{inner}</Link>
+                    <Link to={today ? '/today' : `/day/${d.n}`} className={`${base} ${today ? 'bg-sun' : 'bg-paper'} shadow-[4px_4px_0_#161616] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5`}>{inner}</Link>
                   ) : (
                     <div className={`${base} border-dashed bg-cream/60`} aria-disabled="true">{inner}</div>
                   )}

@@ -18,10 +18,10 @@ export function MenuBar() {
   return (
     <header className="sticky top-0 z-30 border-b-2 border-ink bg-paper">
       <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-2 gap-y-1 px-4 py-2 text-[15px] font-semibold" aria-label="Main">
-        <NavLink to="/" end className={link}>Today</NavLink>
+        <span className="mr-2"><Logo size={20} /></span>
+        <NavLink to="/today" className={link}>Today</NavLink>
         <NavLink to="/archive" className={link}>Archive</NavLink>
         <NavLink to="/steam-room" className={link}>Steam room</NavLink>
-        <NavLink to="/how-it-works" className={link}>How it works</NavLink>
         <span className="ml-auto font-pixel text-[12px]">DAY {String(TODAY).padStart(2, '0')} / 30</span>
       </nav>
     </header>

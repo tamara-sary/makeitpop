@@ -75,17 +75,22 @@ export type Crit = {
   text: string
   agrees: number
   sample?: boolean
+  x?: number // sticky position on the design, % of width
+  y?: number // % of height
+  color?: StickyColor
 }
+
+export type StickyColor = 'sun' | 'mint' | 'pink' | 'sky'
 
 export const CRIT_TAGS = ['Hierarchy', 'Data viz', 'Spacing', 'Copy', 'Accessibility', 'Other']
 
 // Sample crits so the prototype isn't empty. Marked as samples in the UI.
 export const SAMPLE_CRITS: Record<number, Crit[]> = {
   4: [
-    { id: 's1', name: 'Marta', level: 'Senior', tag: 'Hierarchy', text: 'Drop-off is the story. Make step 4 the hero and annotate why people leave there. Everything else is noise.', agrees: 12, sample: true },
-    { id: 's2', name: 'Jon', level: 'Mid', tag: 'Copy', text: 'KPI labels need units and a time frame. 38% of what, retained after week 1?', agrees: 8, sample: true },
-    { id: 's3', name: 'Priya', level: 'Senior', tag: 'Data viz', text: 'A funnel as equal-width bars hides the size of each drop. Show the % lost between steps.', agrees: 5, sample: true },
-    { id: 's4', name: 'Leo', level: 'Mid', tag: 'Accessibility', text: 'The highlighted bar is the only signal. Add a label so it works without color.', agrees: 3, sample: true },
+    { id: 's1', name: 'Marta', level: 'Senior', tag: 'Hierarchy', text: 'Drop-off is the story. Make step 4 the hero and annotate why people leave there. Everything else is noise.', agrees: 12, sample: true, x: 52, y: 58, color: 'sun' },
+    { id: 's2', name: 'Jon', level: 'Mid', tag: 'Copy', text: 'KPI labels need units and a time frame. 38% of what, retained after week 1?', agrees: 8, sample: true, x: 70, y: 16, color: 'mint' },
+    { id: 's3', name: 'Priya', level: 'Senior', tag: 'Data viz', text: 'A funnel as equal-width bars hides the size of each drop. Show the % lost between steps.', agrees: 5, sample: true, x: 6, y: 52, color: 'pink' },
+    { id: 's4', name: 'Leo', level: 'Mid', tag: 'Accessibility', text: 'The highlighted bar is the only signal. Add a label so it works without color.', agrees: 3, sample: true, x: 76, y: 66, color: 'sky' },
   ],
 }
 
@@ -94,3 +99,25 @@ export const SAMPLE_RANTS = [
   { id: 'r2', text: 'Recruiter asked if I could "make the portfolio pop more". I have never felt so seen by a product name.', same: 28, hugs: 9, sample: true },
   { id: 'r3', text: 'Applied to 60 roles this month. 2 replies. Both automated.', same: 63, hugs: 30, sample: true },
 ]
+
+export type Comment = {
+  id: string
+  name: string
+  level: 'Mid' | 'Senior'
+  text: string
+  at: number // ms timestamp
+  likes: number
+  replies: Comment[]
+  sample?: boolean
+}
+
+const H = 3600_000
+export const SAMPLE_COMMENTS: Record<number, Comment[]> = {
+  4: [
+    { id: 'c1', name: 'Priya', level: 'Senior', at: Date.now() - 2 * H, likes: 14, sample: true, text: 'Interesting one. The real question is who reads this on Monday. A growth lead wants "what changed since last week", not totals. I would add a week-over-week delta to every number.', replies: [
+      { id: 'c1r1', name: 'Jon', level: 'Mid', at: Date.now() - 1 * H, likes: 3, sample: true, text: 'Agree. Tried it in my remix, deltas made the drop at step 4 jump out without any extra color.', replies: [] },
+    ] },
+    { id: 'c2', name: 'Marta', level: 'Senior', at: Date.now() - 5 * H, likes: 9, sample: true, text: 'Hot take: delete the KPI cards. The funnel already shows visitors and signups. Use the space to explain the drop.', replies: [] },
+    { id: 'c3', name: 'Leo', level: 'Mid', at: Date.now() - 7 * H, likes: 2, sample: true, text: 'First remix posted on LinkedIn. Went with a horizontal funnel so labels fit. Feedback welcome!', replies: [] },
+  ],
+}

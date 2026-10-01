@@ -5,14 +5,15 @@ import { useStored } from '../lib/store'
 // Poolsuite-style desk: on wide screens, windows float and can be dragged by their title bar,
 // closed with ✕ and reopened from the dock. On narrow screens they stack in normal flow.
 
-export type WinId = 'remix' | 'crits' | 'steam'
+export type WinId = 'brief' | 'remix' | 'steam'
 type Pos = { x: number; y: number } // x as fraction of desk width, y in px
 type Layout = Record<WinId, Pos & { open: boolean }>
 
+// x is clamped so a window never leaves the desk: x = 1 means "pinned right"
 const DEFAULTS: Layout = {
-  remix: { x: 0.64, y: 24, open: true },
-  crits: { x: 0.04, y: 730, open: true },
-  steam: { x: 0.68, y: 600, open: true },
+  brief: { x: 0, y: 0, open: true },
+  remix: { x: 1, y: 16, open: true },
+  steam: { x: 0.2, y: 330, open: true },
 }
 
 type DeskCtx = {
@@ -36,7 +37,7 @@ export function useOpenWin() {
   }
 }
 
-function useWide() {
+export function useWide() {
   const q = '(min-width: 1024px)'
   const [wide, setWide] = useState(() => window.matchMedia(q).matches)
   useEffect(() => {
@@ -48,10 +49,10 @@ function useWide() {
   return wide
 }
 
-export function Desk({ main, children }: { main: ReactNode; children: ReactNode }) {
+export function Desk({ children }: { children: ReactNode }) {
   const floating = useWide()
-  const [layout, setLayout] = useStored<Layout>('desk-v4', DEFAULTS)
-  const [z, setZ] = useState<Record<WinId, number>>({ remix: 3, crits: 2, steam: 1 })
+  const [layout, setLayout] = useStored<Layout>('desk-v5', DEFAULTS)
+  const [z, setZ] = useState<Record<WinId, number>>({ remix: 3, brief: 2, steam: 1 })
   const top = useRef(3)
   const desk = useRef<HTMLDivElement>(null)
 
@@ -67,8 +68,7 @@ export function Desk({ main, children }: { main: ReactNode; children: ReactNode 
 
   return (
     <Ctx.Provider value={value}>
-      <div ref={desk} className={floating ? 'relative min-h-[1260px]' : 'grid gap-8'}>
-        <div className={floating ? 'relative z-0 w-[66%]' : ''}>{main}</div>
+      <div ref={desk} className={floating ? 'relative z-20 min-h-[560px]' : 'grid gap-6'}>
         {children}
       </div>
       <Dock reset={() => setLayout(DEFAULTS)} />
@@ -76,10 +76,11 @@ export function Desk({ main, children }: { main: ReactNode; children: ReactNode 
   )
 }
 
-export function FloatWin({ id, title, width = 380, children, bodyClass = 'p-4' }: { id: WinId; title: string; width?: number; children: ReactNode; bodyClass?: string }) {
+export function FloatWin({ id, title, width = '380px', children, bodyClass = 'p-4' }: { id: WinId; title: string; width?: string; children: ReactNode; bodyClass?: string }) {
   const d = useDesk()
   const st = d.layout[id]
   const drag = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(null)
+  const self = useRef<HTMLElement>(null)
   if (!st.open) return null
 
   if (!d.floating) {
@@ -94,25 +95,26 @@ export function FloatWin({ id, title, width = 380, children, bodyClass = 'p-4' }
   const onDown = (e: RPointerEvent<HTMLDivElement>) => {
     d.front(id)
     const deskW = d.desk.current!.clientWidth
-    drag.current = { sx: e.clientX, sy: e.clientY, ox: st.x * deskW, oy: st.y }
+    const w = self.current!.offsetWidth
+    drag.current = { sx: e.clientX, sy: e.clientY, ox: Math.min(Math.max(st.x * deskW, 0), deskW - w), oy: st.y }
     e.currentTarget.setPointerCapture(e.pointerId)
   }
   const onMove = (e: RPointerEvent<HTMLDivElement>) => {
     if (!drag.current) return
     const el = d.desk.current!
-    const maxX = el.clientWidth - width
-    const maxY = el.clientHeight - 40
-    const nx = Math.min(Math.max(drag.current.ox + e.clientX - drag.current.sx, -width + 120), maxX + width - 120)
-    const ny = Math.min(Math.max(drag.current.oy + e.clientY - drag.current.sy, -10), maxY)
-    d.move(id, { x: nx / el.clientWidth, y: ny })
+    const w = self.current!.offsetWidth
+    const nx = Math.min(Math.max(drag.current.ox + e.clientX - drag.current.sx, 0), el.clientWidth - w)
+    const ny = Math.min(Math.max(drag.current.oy + e.clientY - drag.current.sy, -10), 2400)
+    d.move(id, { x: nx / Math.max(1, el.clientWidth - w), y: ny })
   }
   const onUp = () => { drag.current = null }
 
   return (
     <section
+      ref={self}
       id={'win-' + id}
       className="win absolute"
-      style={{ left: `clamp(0px, ${st.x * 100}%, calc(100% - ${width}px))`, top: st.y, width, zIndex: 10 + d.z[id] }}
+      style={{ left: `calc((100% - ${width}) * ${Math.min(Math.max(st.x, 0), 1)})`, top: st.y, width, zIndex: 10 + d.z[id] }}
       aria-label={title}
       onPointerDownCapture={() => d.front(id)}
     >
@@ -123,8 +125,8 @@ export function FloatWin({ id, title, width = 380, children, bodyClass = 'p-4' }
 }
 
 const DOCK: { id: WinId; label: string; icon: ReactNode; bg: string }[] = [
+  { id: 'brief', label: 'Brief', bg: 'bg-sun', icon: <path d="M5 4h10M5 8h10M5 12h6" fill="none" stroke="currentColor" strokeWidth="2" /> },
   { id: 'remix', label: 'Remix it', bg: 'bg-pink', icon: <path d="M4 8h11l-3-3M16 12H5l3 3" fill="none" stroke="currentColor" strokeWidth="2" /> },
-  { id: 'crits', label: 'Crits', bg: 'bg-sun', icon: <path d="M4 4h12v8l-4 4H4z M12 16v-4h4" fill="none" stroke="currentColor" strokeWidth="2" /> },
   { id: 'steam', label: 'Steam room', bg: 'bg-mint', icon: <path d="M10 3v9M10 15v2" fill="none" stroke="currentColor" strokeWidth="2.5" /> },
 ]
 
