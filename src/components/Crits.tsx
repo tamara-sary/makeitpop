@@ -5,10 +5,10 @@ import { useToast } from './ui'
 const TONES = ['bg-sun', 'bg-mint', 'bg-paper', 'bg-pink']
 const TILTS = ['-rotate-1', 'rotate-1', '-rotate-[0.5deg]', 'rotate-[0.7deg]']
 
-export function CritList({ crits, onAgree }: { crits: Crit[]; onAgree: (id: string) => void }) {
+export function CritList({ crits, onAgree, compact = false }: { crits: Crit[]; onAgree: (id: string) => void; compact?: boolean }) {
   if (!crits.length) return <p className="text-muted">No crits yet. Be the first to say what's off.</p>
   return (
-    <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2">
+    <ul className={'m-0 grid list-none gap-4 p-0 ' + (compact ? '' : 'sm:grid-cols-2')}>
       {crits.map((c, i) => (
         <li key={c.id} className={`note ${TONES[i % TONES.length]} ${TILTS[i % TILTS.length]}`}>
           <div className="flex flex-wrap items-center gap-2">
@@ -49,7 +49,7 @@ export function CritForm({ onAdd }: { onAdd: (c: Omit<Crit, 'id' | 'agrees'>) =>
   }
 
   return (
-    <form onSubmit={submit} className="win grid gap-3 p-4" noValidate>
+    <form onSubmit={submit} className="grid gap-3 border-2 border-ink bg-paper p-4" noValidate>
       <label htmlFor="crit-text" className="font-display text-lg font-extrabold">Leave a crit</label>
       <textarea
         id="crit-text"
@@ -61,7 +61,7 @@ export function CritForm({ onAdd }: { onAdd: (c: Omit<Crit, 'id' | 'agrees'>) =>
         aria-describedby={err ? 'crit-err' : undefined}
       />
       {err && <p id="crit-err" className="text-[14px] font-semibold">⚠ {err}</p>}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3">
         <label className="grid gap-1 text-[13px] font-semibold" htmlFor="crit-tag">About
           <select id="crit-tag" className="field" value={tag} onChange={(e) => setTag(e.target.value)}>
             {CRIT_TAGS.map((t) => <option key={t}>{t}</option>)}

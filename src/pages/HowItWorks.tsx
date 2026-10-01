@@ -32,7 +32,7 @@ export default function HowItWorks() {
       <section className="grid gap-2">
         <h2 className="text-2xl">Remixing rules</h2>
         <ul className="m-0 grid gap-1 pl-5">
-          <li>Every design is free to remix under CC BY 4.0. Credit Make It Pop when you post.</li>
+          <li>Every design is free to remix. Just credit Make It Pop when you post.</li>
           <li>Crit the work, not the person.</li>
           <li>Punch at the process, never at people.</li>
         </ul>

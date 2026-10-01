@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useState, type HTMLAttributes, type ReactNode } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import { TODAY } from '../data/days'
 import { copyText } from '../lib/store'
@@ -17,8 +17,7 @@ export function MenuBar() {
     'px-2 py-1 no-underline ' + (isActive ? 'bg-ink text-cream' : 'text-ink hover:bg-sun')
   return (
     <header className="sticky top-0 z-30 border-b-2 border-ink bg-paper">
-      <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-1 px-4 py-2 text-[15px] font-semibold" aria-label="Main">
-        <span className="mr-1 h-4 w-4 rounded-full border-2 border-ink bg-pink" aria-hidden="true" />
+      <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-2 gap-y-1 px-4 py-2 text-[15px] font-semibold" aria-label="Main">
         <NavLink to="/" end className={link}>Today</NavLink>
         <NavLink to="/archive" className={link}>Archive</NavLink>
         <NavLink to="/steam-room" className={link}>Steam room</NavLink>
@@ -29,10 +28,23 @@ export function MenuBar() {
   )
 }
 
-export function Win({ title, children, className = '', bodyClass = 'p-4 sm:p-5' }: { title: string; children: ReactNode; className?: string; bodyClass?: string }) {
+export function TitleBar({ title, onClose, className = '', ...rest }: { title: string; onClose?: () => void; className?: string } & HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={'tbar ' + className} {...rest}>
+      <span className="title">{title}</span>
+      {onClose && (
+        <button type="button" className="close" onClick={onClose} onPointerDown={(e) => e.stopPropagation()} aria-label={`Close ${title}`}>
+          <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="2" /></svg>
+        </button>
+      )}
+    </div>
+  )
+}
+
+export function Win({ title, children, className = '', bodyClass = 'p-4 sm:p-5', onClose }: { title: string; children: ReactNode; className?: string; bodyClass?: string; onClose?: () => void }) {
   return (
     <section className={'win ' + className} aria-label={title}>
-      <div className="tbar"><span className="x" aria-hidden="true" /><span className="title">{title}</span></div>
+      <TitleBar title={title} onClose={onClose} />
       <div className={bodyClass}>{children}</div>
     </section>
   )
@@ -75,7 +87,7 @@ export function CopyButton({ text, label, done = 'Copied', className = 'btn btn-
 export function PrototypeNote() {
   return (
     <p className="text-center text-[13px] text-muted">
-      Prototype v0 · sample content is marked "sample" · anything you add is saved on this device only
+      Prototype v1 · sample content is marked "sample" · anything you add is saved on this device only
     </p>
   )
 }

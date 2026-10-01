@@ -1,84 +1,71 @@
 import { useState } from 'react'
 import { REPO, type Crit, type Day } from '../data/days'
-import { CopyButton, Win, useToast } from './ui'
+import { CopyButton, useToast } from './ui'
 
-type Tab = 'figma' | 'code' | 'ai'
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'figma', label: 'Figma' },
-  { id: 'code', label: 'Claude Code' },
-  { id: 'ai', label: 'Any AI tool' },
-]
-
-export function RemixKit({ day, topCrits }: { day: Day; topCrits: Crit[] }) {
-  const [tab, setTab] = useState<Tab>('figma')
+// Three plain steps, same for every tool. Tool-specific detail lives inside the tool
+// (the Figma file explains itself; the code kit has CLAUDE.md).
+export function RemixSteps({ day, topCrit, onSeeCrits }: { day: Day; topCrit?: Crit; onSeeCrits: () => void }) {
+  const [showCode, setShowCode] = useState(false)
   const toast = useToast()
-  const dd = String(day.n).padStart(2, '0')
-  const slug = `day-${dd}`
-  const command = `npx degit ${REPO}/${slug} my-${slug}-remix\ncd my-${slug}-remix && npm i && claude`
-  const critLines = topCrits.slice(0, 3).map((c, i) => `${i + 1}. ${c.text}`).join('\n')
-  const prompt = `I'm remixing Day ${day.n} of the Make It Pop 30-day UI challenge: "${day.title}".\n\nBrief: ${day.brief}\n\nTop crits from the community:\n${critLines || '(none yet)'}\n\nPropose 3 improvements that address these crits, explain the reasoning for each, then implement them one at a time. Keep it accessible (WCAG AA).`
+  const slug = `day-${String(day.n).padStart(2, '0')}`
+  const command = `npx degit ${REPO}/${slug} my-${slug}-remix`
+  const prompt = `I'm remixing Day ${day.n} of the Make It Pop 30-day UI challenge: "${day.title}".\n\nBrief: ${day.brief}\n\nTop crit: ${topCrit?.text ?? '(none yet)'}\n\nPropose 3 improvements, explain why, then make them. Keep it accessible (WCAG AA).`
   const caption = `Remixed Day ${day.n} of the Make It Pop 30-day UI challenge: ${day.title}.\n\nOriginal → makeitpop.work/day/${day.n}\nWhat I changed:\n1) \n2) \n3) \n\n#MakeItPop #UIChallenge #ProductDesign`
 
+  const num = (n: number) => (
+    <span className="grid h-7 w-7 flex-none place-items-center border-2 border-ink bg-ink font-display text-[15px] font-extrabold text-cream" aria-hidden="true">{n}</span>
+  )
+
   return (
-    <Win title="Remix kit" bodyClass="p-4 grid gap-4">
-      <div>
-        <h3 className="text-xl">Grab it. Fix it. Post it.</h3>
-        <p className="text-[14px] text-muted">Pick your tool. Your remix goes on LinkedIn, credit is already in the template.</p>
-      </div>
+    <div className="grid gap-5">
+      <h3 className="text-[22px]">Make it better in 3 steps</h3>
 
-      <div role="tablist" aria-label="Remix in" className="flex flex-wrap gap-2">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            role="tab"
-            id={`tab-${t.id}`}
-            aria-selected={tab === t.id}
-            aria-controls={`panel-${t.id}`}
-            onClick={() => setTab(t.id)}
-            className={'chip cursor-pointer ' + (tab === t.id ? 'bg-ink text-cream' : 'hover:bg-sun')}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <ol className="m-0 grid list-none gap-5 p-0">
+        <li className="grid grid-cols-[auto_1fr] gap-3">
+          {num(1)}
+          <div className="grid gap-2">
+            <strong>Grab the design</strong>
+            <div className="flex flex-wrap gap-2">
+              {day.figmaUrl ? (
+                <a className="btn btn-sm" href={day.figmaUrl} target="_blank" rel="noreferrer">Figma file ↗</a>
+              ) : (
+                <button className="btn btn-sm" type="button" onClick={() => toast(`Day ${day.n} Figma file is coming soon`)}>Figma file ↗</button>
+              )}
+              <button className="btn btn-ghost btn-sm" type="button" aria-expanded={showCode} onClick={() => setShowCode((v) => !v)}>Code</button>
+            </div>
+            {showCode && (
+              <div className="grid gap-2">
+                <p className="text-[13px]">Run this, then open the folder in Claude Code or Cursor. The brief and crits are already inside.</p>
+                <pre className="code m-0">{command}</pre>
+                <div className="flex flex-wrap items-center gap-3">
+                  <CopyButton text={command} label="Copy command" />
+                  <CopyButton text={prompt} label="Another AI tool? Copy prompt" className="cursor-pointer border-0 bg-transparent p-0 text-[13px] font-semibold underline" />
+                </div>
+              </div>
+            )}
+          </div>
+        </li>
 
-      {tab === 'figma' && (
-        <div role="tabpanel" id="panel-figma" aria-labelledby="tab-figma" className="grid gap-3">
-          <ol className="m-0 grid list-decimal gap-1 pl-5 text-[14px]">
-            <li>Open the file and hit <strong>Duplicate</strong>. It lands in your drafts.</li>
-            <li>Edit the <strong>Your remix</strong> page. Top crits are on a sticky.</li>
-            <li>Export the <strong>Share</strong> page: a before/after carousel with credit built in.</li>
-          </ol>
-          {day.figmaUrl ? (
-            <a className="btn" href={day.figmaUrl} target="_blank" rel="noreferrer">Open in Figma ↗</a>
-          ) : (
-            <button className="btn" type="button" onClick={() => toast(`Day ${day.n} Figma file isn't published yet`)}>Open in Figma ↗</button>
-          )}
-        </div>
-      )}
+        <li className="grid grid-cols-[auto_1fr] gap-3">
+          {num(2)}
+          <div className="grid gap-2">
+            <strong>Fix what the crits found</strong>
+            {topCrit && <blockquote className="m-0 border-l-4 border-pink pl-3 text-[14px]">"{topCrit.text}"<br /><span className="text-[12px] text-muted">Top crit · {topCrit.name}</span></blockquote>}
+            <button type="button" className="w-fit cursor-pointer border-0 bg-transparent p-0 text-[13px] font-semibold underline" onClick={onSeeCrits}>See all crits</button>
+          </div>
+        </li>
 
-      {tab === 'code' && (
-        <div role="tabpanel" id="panel-code" aria-labelledby="tab-code" className="grid gap-3">
-          <p className="text-[14px]">Gets the working code with a <code>CLAUDE.md</code> (brief + crits) and <code>REMIX.md</code> (starter prompt + caption). Works with Cursor too.</p>
-          <pre className="code m-0">{command}</pre>
-          <CopyButton text={command} label="Copy command" className="btn" />
-        </div>
-      )}
+        <li className="grid grid-cols-[auto_1fr] gap-3">
+          {num(3)}
+          <div className="note tilt bg-sun shadow-[3px_3px_0_#161616]">
+            <strong className="font-display text-lg">Post it on LinkedIn</strong>
+            <p className="text-[14px]">Caption with credit, ready to paste.</p>
+            <div><CopyButton text={caption} label="Copy caption" /></div>
+          </div>
+        </li>
+      </ol>
 
-      {tab === 'ai' && (
-        <div role="tabpanel" id="panel-ai" aria-labelledby="tab-ai" className="grid gap-3">
-          <p className="text-[14px]">Brief + top crits as one prompt. Paste it with a screenshot into any AI design or coding tool.</p>
-          <pre className="code m-0 max-h-40 whitespace-pre-wrap">{prompt}</pre>
-          <CopyButton text={prompt} label="Copy remix prompt" className="btn" />
-        </div>
-      )}
-
-      <div className="note bg-sun">
-        <strong className="font-display text-lg">Done? Share it.</strong>
-        <p className="text-[14px]">Caption with credit, ready to paste on LinkedIn.</p>
-        <div><CopyButton text={caption} label="Copy caption" /></div>
-      </div>
-      <p className="text-[12px] text-muted">Free to remix under CC BY 4.0. Please credit Make It Pop.</p>
-    </Win>
+      <p className="text-[12px] text-muted">Free to remix. Just credit Make It Pop when you post.</p>
+    </div>
   )
 }

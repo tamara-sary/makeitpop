@@ -18,7 +18,7 @@ export default function App() {
       <ToastProvider>
         <ScrollTop />
         <MenuBar />
-        <main className="mx-auto grid max-w-6xl gap-12 px-4 py-8 sm:py-10">
+        <main className="mx-auto grid max-w-7xl gap-12 px-4 py-8 sm:py-10">
           <Routes>
             <Route path="/" element={<DayPage />} />
             <Route path="/day/:n" element={<DayPage />} />
