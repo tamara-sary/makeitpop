@@ -11,7 +11,7 @@ export type Day = {
 }
 
 export const TODAY = 4 // prototype: which day is "today"
-export const REPO = 'makeitpop/challenges'
+export const REPO = 'tamara-sary/makeitpop/challenges'
 
 const PROMPTS = [
   'Finance dashboard: spend overview for a small team',
