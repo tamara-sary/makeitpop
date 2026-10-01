@@ -11,7 +11,7 @@ export default function Archive() {
       {WEEKS.map((w, wi) => (
         <section key={w} className="grid gap-3" aria-labelledby={`wk-${wi}`}>
           <h2 id={`wk-${wi}`} className="text-2xl">Week {wi + 1} · {w}</h2>
-          <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-4 p-0">
+          <ul className="m-0 grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-4 lg:grid-cols-7">
             {DAYS.filter((d) => d.week === wi).map((d) => {
               const open = d.n <= TODAY
               const today = d.n === TODAY
