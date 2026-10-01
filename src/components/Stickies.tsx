@@ -43,7 +43,10 @@ export function Sticky({ crit, i, onAgree, style, className = '', children, onPo
 
 type Pos = Record<string, { x: number; y: number }>
 
-export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, children }: {
+export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hidden, adding, setAdding, children }: {
+  hidden: boolean
+  adding: boolean
+  setAdding: (v: boolean) => void
   crits: Crit[]
   positions: Pos
   onMove: (id: string, x: number, y: number) => void
@@ -54,8 +57,12 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, ch
 }) {
   const board = useRef<HTMLDivElement>(null)
   const drag = useRef<{ id: string; sx: number; sy: number; ox: number; oy: number } | null>(null)
-  const [draft, setDraft] = useState<{ color: StickyColor; text: string } | null>(null)
-  const [hidden, setHidden] = useState(false)
+  const [draftState, setDraftState] = useState<{ color: StickyColor; text: string }>({ color: 'sun', text: '' })
+  const draft = adding ? draftState : null
+  const setDraft = (d: { color: StickyColor; text: string } | null) => {
+    if (d) setDraftState(d)
+    else { setDraftState({ color: 'sun', text: '' }); setAdding(false) }
+  }
 
   const posOf = (c: Crit, i: number) => positions[c.id] ?? { x: c.x ?? 8 + (i % 4) * 22, y: c.y ?? 10 + Math.floor(i / 4) * 30 }
 
@@ -73,24 +80,17 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, ch
   }
   const up = () => { drag.current = null }
 
-  const toolbar = (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="font-pixel text-[11px]">ADD A STICKY</span>
-      {(Object.keys(STICKY_BG) as StickyColor[]).map((c) => (
-        <button key={c} type="button" aria-label={`Add ${c} sticky`} onClick={() => setDraft({ color: c, text: '' })}
-          className="h-7 w-7 cursor-pointer border-2 border-ink shadow-[2px_2px_0_#161616] hover:-translate-y-0.5" style={{ background: STICKY_BG[c] }} />
-      ))}
-      {wide && (
-        <button type="button" className="chip ml-1 cursor-pointer hover:bg-sun" aria-pressed={hidden} onClick={() => setHidden((h) => !h)}>
-          {hidden ? 'Show stickies' : 'Hide stickies'}
-        </button>
-      )}
-    </div>
-  )
-
   const draftNote = draft && (
     <Sticky crit={{ id: 'draft', name: 'You', level: 'Mid', tag: '', text: '', agrees: 0, color: draft.color }} i={0}>
-      <label className="font-pixel text-[10px]" htmlFor="sticky-draft">YOUR CRIT</label>
+      <div className="flex items-center justify-between gap-2">
+        <label className="font-pixel text-[10px]" htmlFor="sticky-draft">YOUR CRIT</label>
+        <div className="flex gap-1" role="group" aria-label="Sticky colour">
+          {(Object.keys(STICKY_BG) as StickyColor[]).map((c) => (
+            <button key={c} type="button" aria-label={c} aria-pressed={draft.color === c} onClick={() => setDraft({ ...draft, color: c })}
+              className={'h-4 w-4 cursor-pointer border-2 border-ink ' + (draft.color === c ? 'outline-2 outline-offset-1 outline-ink' : '')} style={{ background: STICKY_BG[c] }} />
+          ))}
+        </div>
+      </div>
       <textarea id="sticky-draft" autoFocus className="min-h-20 w-full resize-none border-0 bg-transparent text-[14px] font-medium outline-none placeholder:text-ink/60"
         placeholder="What's off here, and why?" value={draft.text} onChange={(e) => setDraft({ ...draft, text: e.target.value })} />
       <div className="flex gap-2">
@@ -106,7 +106,6 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, ch
     return (
       <div className="grid gap-4">
         {children}
-        {toolbar}
         {draftNote}
         <div className="grid justify-items-center gap-5 py-2 sm:grid-cols-2">
           {crits.map((c, i) => <Sticky key={c.id} crit={c} i={i} onAgree={() => onAgree(c.id)} />)}
@@ -117,7 +116,6 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, ch
 
   return (
     <div className="grid gap-3">
-      {toolbar}
       <div ref={board} className="relative" onPointerMove={move} onPointerUp={up}>
         {children}
         {!hidden && crits.map((c, i) => {
@@ -131,7 +129,6 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, ch
         })}
         {draft && <div className="absolute left-[40%] top-[30%] z-40">{draftNote}</div>}
       </div>
-      <p className="text-[13px] text-muted">Drag stickies to the spot they're about. +1 the ones you'd fix first.</p>
     </div>
   )
 }
