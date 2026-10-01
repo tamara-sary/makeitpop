@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+/* Make It Pop — D · Pop Desk, Bubblegum cream */
+@theme {
+  --color-ink: #161616;
+  --color-cream: #fff6e5;
+  --color-pink: #ff7ac6;
+  --color-sun: #ffe14d;
+  --color-mint: #8fe3c1;
+  --color-paper: #ffffff;
+  --color-muted: #5e5850;
+  --font-display: "Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --font-sans: "Figtree", system-ui, -apple-system, sans-serif;
+  --font-pixel: "Silkscreen", ui-monospace, monospace;
+}
+
+html { background: var(--color-cream); }
+body {
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  background: var(--color-cream) radial-gradient(rgba(22, 22, 22, 0.13) 1.2px, transparent 1.3px) 0 0 / 20px 20px;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.025em; line-height: 1.05; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+:focus-visible { outline: 3px solid var(--color-pink); outline-offset: 2px; }
+
+/* ---------- brand components ---------- */
+@layer components {
+  .win {
+    background: var(--color-paper);
+    border: 2px solid var(--color-ink);
+    box-shadow: 6px 6px 0 var(--color-ink);
+    position: relative;
+  }
+  .tbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 8px;
+    border-bottom: 2px solid var(--color-ink);
+    background:
+      repeating-linear-gradient(0deg, var(--color-ink) 0 1.5px, transparent 1.5px 4px) center / 100% 12px no-repeat,
+      var(--color-paper);
+  }
+  .tbar .x { width: 14px; height: 14px; border: 2px solid var(--color-ink); background: var(--color-paper); flex: none; }
+  .tbar .title {
+    margin: 0 auto; background: var(--color-paper); padding: 0 10px;
+    font: 400 12px/1.2 var(--font-pixel); letter-spacing: 0.02em; text-transform: uppercase;
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    font: 700 15px/1 var(--font-sans);
+    padding: 11px 16px;
+    border: 2px solid var(--color-ink);
+    box-shadow: 3px 3px 0 var(--color-ink);
+    background: var(--color-pink); color: var(--color-ink);
+    cursor: pointer; text-decoration: none;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--color-ink); }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--color-ink); }
+  .btn-ghost { background: var(--color-paper); }
+  .btn-sun { background: var(--color-sun); }
+  .btn-mint { background: var(--color-mint); }
+  .btn-sm { font-size: 13px; padding: 7px 11px; }
+
+  .note {
+    border: 2px solid var(--color-ink);
+    padding: 14px;
+    display: grid; gap: 6px;
+  }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font: 700 12px/1 var(--font-sans);
+    padding: 5px 8px;
+    border: 2px solid var(--color-ink);
+    background: var(--color-paper);
+  }
+
+  .field {
+    width: 100%;
+    font: 500 15px/1.4 var(--font-sans);
+    padding: 10px 12px;
+    border: 2px solid var(--color-ink);
+    background: var(--color-paper);
+    color: var(--color-ink);
+  }
+  .field:focus { outline: none; box-shadow: 3px 3px 0 var(--color-pink); }
+
+  .code {
+    font: 500 13px/1.6 ui-monospace, "SF Mono", Menlo, monospace;
+    background: var(--color-ink); color: var(--color-cream);
+    padding: 12px 14px; overflow-x: auto; white-space: pre;
+  }
+
+  .pop-sticker {
+    display: inline-block;
+    background: var(--color-sun);
+    border: 2px solid var(--color-ink);
+    box-shadow: 3px 3px 0 var(--color-ink);
+    padding: 0 0.16em 0.08em;
+    transform: rotate(-4deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
