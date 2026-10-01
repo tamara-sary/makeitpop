@@ -1,0 +1,7 @@
+{
+  "name": "makeitpop-day-01",
+  "private": true,
+  "description": "Make It Pop Day 1: Finance dashboard, spend overview for a small team. Free to remix, credit Make It Pop.",
+  "scripts": { "dev": "vite", "build": "vite build" },
+  "devDependencies": { "vite": "^8.3.0" }
+}

@@ -44,6 +44,8 @@ const PROMPTS = [
   'Reflect + plan: what to keep doing after day 30',
 ]
 
+const PREVIEWS: Record<number, string> = { 1: '/days/day-01.png' }
+
 export const WEEKS = ['Dashboards', 'Landing pages', 'Mix & flows', 'Case studies']
 
 const BRIEFS: Record<number, string> = {
@@ -58,6 +60,7 @@ export const DAYS: Day[] = PROMPTS.map((title, i) => {
     title,
     week: n <= 7 ? 0 : n <= 14 ? 1 : n <= 21 ? 2 : 3,
     brief: BRIEFS[n] ?? 'Brief coming with the kit. Start from the prompt above and the top crits.',
+    preview: PREVIEWS[n],
   }
 })
 // 30-day tracker has 28 prompts; days 29-30 are open
