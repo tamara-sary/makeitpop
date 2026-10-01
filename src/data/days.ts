@@ -47,6 +47,7 @@ const PROMPTS = [
 export const WEEKS = ['Dashboards', 'Landing pages', 'Mix & flows', 'Case studies']
 
 const BRIEFS: Record<number, string> = {
+  1: 'Maya runs operations at a 22-person startup with no finance team. Every Monday she has 5 minutes to check spending before the founders\' meeting. She needs to know: are we on track, where did the money go, and what needs her action? She isn\'t a finance person. If she has to think about what a number means, the dashboard failed.',
   4: 'A growth team checks this every Monday. They need to see where people drop out of signup and whether the ones who stay come back. Today\'s version shows the numbers, but does it tell the story?',
 }
 
