@@ -1,7 +1,9 @@
 // Make It Pop - Day 1 Figma builder (Brightloop spend overview)
 // HOW TO RUN: open a NEW empty Figma design file > Plugins > Development > Show/Hide console > paste all > Enter.
-// Builds: colour variables, components, and pages Original / Your remix / Share.
+// Builds on ONE page (Starter plan friendly): colour variables, components, and sections Original / Your remix / Share / Components.
+// Safe to re-run: it removes its own previous variables first.
 
+{
 await figma.loadFontAsync({ family: "Inter", style: "Regular" });
 await figma.loadFontAsync({ family: "Inter", style: "Medium" });
 await figma.loadFontAsync({ family: "Inter", style: "Semi Bold" });
@@ -13,6 +15,7 @@ const EUR = "\u20AC", DOT = "\u00B7";
 // ---------- tokens as Figma variables ----------
 const HEX = { page: "E9ECF2", panel: "FFFFFF", surface: "F5F6F8", ink: "16181D", ink2: "3C4049", muted: "6B7180", line: "E6E8EE", blue: "2F6BFF", blueSoft: "EAF0FF", barSoft: "DBE5FF", green: "1F9D55", greenSoft: "E6F6EC", greenLine: "A9DFBD", amber: "B45309", amberSoft: "FFF3E0", red: "D93B3B", redSoft: "FDECEC", peach: "FFD9C2", peachInk: "8A3B12", sticky: "FFE14D" };
 function rgb(h) { return { r: parseInt(h.slice(0, 2), 16) / 255, g: parseInt(h.slice(2, 4), 16) / 255, b: parseInt(h.slice(4, 6), 16) / 255 }; }
+for (const old of await figma.variables.getLocalVariableCollectionsAsync()) { if (old.name === "Brightloop tokens") old.remove(); }
 const coll = figma.variables.createVariableCollection("Brightloop tokens");
 const MODE = coll.modes[0].modeId;
 const V = {};
@@ -60,10 +63,11 @@ function iconSvg(key, hex) {
 }
 
 // ---------- pages ----------
-const pOriginal = figma.currentPage; pOriginal.name = "Original";
-const pRemix = figma.createPage(); pRemix.name = "Your remix";
-const pShare = figma.createPage(); pShare.name = "Share";
-const pComp = figma.createPage(); pComp.name = "Components";
+// ---------- sections on the current page (no new pages) ----------
+const PAGE = figma.currentPage; PAGE.name = "Make It Pop " + DOT + " Day 1";
+for (const n of PAGE.children.slice()) { if (n.type === "SECTION" && ["Original", "Your remix", "Share", "Components"].indexOf(n.name) >= 0) n.remove(); }
+function section(name) { const s = figma.createSection(); s.name = name; PAGE.appendChild(s); return s; }
+const pOriginal = section("Original"), pRemix = section("Your remix"), pShare = section("Share"), pComp = section("Components");
 
 // ---------- components ----------
 const compBoard = box("Components", "VERTICAL", 40, 40, "panel");
@@ -173,21 +177,21 @@ const meTxt = box("Name", "VERTICAL", 0, 0); me.appendChild(meTxt); meTxt.append
 const main = box("Main", "VERTICAL", 0, 0, "surface"); main.cornerRadius = 20;
 add(app, main, "FILL");
 app.paddingTop = 10; app.paddingBottom = 10; app.paddingRight = 10;
-const top = box("Top bar", "HORIZONTAL", 16, [14, 20, 14, 20], "panel"); top.counterAxisAlignItems = "CENTER"; top.primaryAxisAlignItems = "SPACE_BETWEEN";
-top.topLeftRadius = 20; top.topRightRadius = 20; top.strokes = paint("line"); top.strokeTopWeight = 0; top.strokeLeftWeight = 0; top.strokeRightWeight = 0; top.strokeBottomWeight = 1;
-add(main, top, "FILL");
+const topBar = box("Top bar", "HORIZONTAL", 16, [14, 20, 14, 20], "panel"); topBar.counterAxisAlignItems = "CENTER"; topBar.primaryAxisAlignItems = "SPACE_BETWEEN";
+topBar.topLeftRadius = 20; topBar.topRightRadius = 20; topBar.strokes = paint("line"); topBar.strokeTopWeight = 0; topBar.strokeLeftWeight = 0; topBar.strokeRightWeight = 0; topBar.strokeBottomWeight = 1;
+add(main, topBar, "FILL");
 const pill = box("Workspace", "HORIZONTAL", 6, [8, 14, 8, 14], "panel"); pill.cornerRadius = 99; stroke(pill, "line"); pill.counterAxisAlignItems = "CENTER";
-pill.appendChild(ICON.chev.createInstance()); pill.appendChild(txt("Brightloop " + DOT + " October 2026", 14, "Medium")); top.appendChild(pill);
+pill.appendChild(ICON.chev.createInstance()); pill.appendChild(txt("Brightloop " + DOT + " October 2026", 14, "Medium")); topBar.appendChild(pill);
 const search = box("Search", "HORIZONTAL", 8, [8, 14, 8, 14], "surface"); search.cornerRadius = 99; stroke(search, "line"); search.counterAxisAlignItems = "CENTER";
-search.primaryAxisSizingMode = "FIXED"; search.resize(380, 38); search.appendChild(ICON.search.createInstance()); search.appendChild(txt("Search transactions, suppliers\u2026", 14, "Regular", "muted")); top.appendChild(search);
-const topR = box("Actions", "HORIZONTAL", 10, 0); topR.counterAxisAlignItems = "CENTER"; top.appendChild(topR);
+search.primaryAxisSizingMode = "FIXED"; search.resize(380, 38); search.appendChild(ICON.search.createInstance()); search.appendChild(txt("Search transactions, suppliers\u2026", 14, "Regular", "muted")); topBar.appendChild(search);
+const topR = box("Actions", "HORIZONTAL", 10, 0); topR.counterAxisAlignItems = "CENTER"; topBar.appendChild(topR);
 for (const k of ["sun", "bell"]) { const r = box("Icon button", "HORIZONTAL", 0, 9, "panel"); r.cornerRadius = 99; stroke(r, "line"); r.appendChild(ICON[k].createInstance()); topR.appendChild(r); }
 topR.appendChild(avatar(36));
 
 const content = box("Content", "VERTICAL", 20, 24); add(main, content, "FILL");
 const hello = box("Greeting", "HORIZONTAL", 16, 0); hello.primaryAxisAlignItems = "SPACE_BETWEEN"; hello.counterAxisAlignItems = "MAX"; add(content, hello, "FILL");
 const hi = box("Heading", "VERTICAL", 4, 0); hello.appendChild(hi);
-hi.appendChild(txt("Good morning, Maya", 26, "Bold")); hi.appendChild(txt("Day 20 of October. Here's where the money is going.", 14, "Regular", "muted"));
+hi.appendChild(txt("Good morning, Maya", 26, "Bold")); hi.appendChild(txt("Monday, 20 October " + DOT + " 11 days left this month", 14, "Regular", "muted"));
 const share = BTN.c.createInstance(); hello.appendChild(share);
 
 const grid = box("Grid", "HORIZONTAL", 20, 0); add(content, grid, "FILL");
@@ -202,7 +206,7 @@ sl.appendChild(txt("Spent this month", 15, "Semi Bold", "ink2"));
 const bigRow = box("Big number", "HORIZONTAL", 8, 0); bigRow.counterAxisAlignItems = "BASELINE"; sl.appendChild(bigRow);
 bigRow.appendChild(txt(EUR + "31,240", 34, "Bold")); bigRow.appendChild(txt("of " + EUR + "42,000 budget", 15, "Medium", "muted"));
 const chips = box("Status", "HORIZONTAL", 10, 0); chips.counterAxisAlignItems = "CENTER"; sl.appendChild(chips);
-chips.appendChild(chip(EUR + "4,143 ahead of pace", "amber", "amberSoft")); chips.appendChild(txt("74% used, 65% of the month gone", 13, "Regular", "muted"));
+chips.appendChild(chip(EUR + "4,143 ahead of pace", "amber", "amberSoft")); chips.appendChild(txt("74% of the budget used, 11 days to go", 13, "Regular", "muted"));
 function seg(labels, small) {
   const s = box("Segmented", "HORIZONTAL", 2, 3, "surface"); s.cornerRadius = 10;
   labels.forEach(function (l, i) {
@@ -294,7 +298,7 @@ const readme = note("Make It Pop " + DOT + " Day 1", [
   "WHO: Maya, operations lead at Brightloop, a 22-person startup with no finance team. Every Monday she has 5 minutes before the founders' meeting.",
   "SHE NEEDS: 1) Are we on track? 2) Where did the money go? 3) What needs me?",
   "She isn't a finance person. If she has to think about what a number means, the dashboard failed.",
-  "HOW TO REMIX: work on the 'Your remix' page. When you're done, export the 'Share' page and post it on LinkedIn.",
+  "HOW TO REMIX: work in the 'Your remix' section. When you're done, export the 2 slides in the 'Share' section and post them on LinkedIn.",
   "Free to remix. Just credit Make It Pop when you post. makeitpop.work/day/1"
 ], 440);
 pOriginal.appendChild(readme); readme.x = root.width + 80; readme.y = 0;
@@ -327,6 +331,14 @@ const thumb = root.clone(); thumb.locked = false; thumb.rescale(0.62); beforeSlo
 const afterSlot = slide("Slide 2 " + DOT + " After", "AFTER (your remix)", 1160);
 afterSlot.appendChild(txt("Paste a copy of your remix here and scale it to fit", 22, "Medium", "muted"));
 
-await figma.setCurrentPageAsync(pOriginal);
-figma.viewport.scrollAndZoomIntoView([root, readme]);
+// fit each section around its content and lay them out left to right
+function fit(sec) {
+  const kids = sec.children; let maxX = 0, maxY = 0;
+  for (const k of kids) { k.x += 80; k.y += 120; maxX = Math.max(maxX, k.x + k.width); maxY = Math.max(maxY, k.y + k.height); }
+  sec.resizeWithoutConstraints(maxX + 80, maxY + 80);
+}
+let cursor = 0;
+for (const sec of [pOriginal, pRemix, pShare, pComp]) { fit(sec); sec.x = cursor; sec.y = 0; cursor += sec.width + 200; }
+figma.viewport.scrollAndZoomIntoView([pOriginal]);
 figma.notify("Make It Pop Day 1 built: Original, Your remix, Share, Components");
+}
