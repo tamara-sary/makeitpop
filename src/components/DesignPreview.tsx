@@ -4,7 +4,7 @@ import type { Day } from '../data/days'
 // a built-in mock for day 4, and a placeholder otherwise.
 export function DesignPreview({ day }: { day: Day }) {
   if (day.preview) {
-    return <img src={day.preview} alt={`Day ${day.n} design: ${day.title}`} className="block w-full" />
+    return <img src={day.preview} alt={`Day ${day.n} design: ${day.title}`} className="block w-full drop-shadow-[0_12px_30px_rgba(60,40,10,0.14)]" draggable={false} />
   }
   if (day.n === 4) return <FunnelMock />
   return (

@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { DesignPreview } from '../components/DesignPreview'
 import { RemixSteps } from '../components/RemixKit'
@@ -40,73 +40,111 @@ export default function DayPage() {
   const isToday = n === TODAY
   const me = (text: string): Comment => ({ id: 'u' + Date.now(), name: 'You', level: 'Mid', text, at: Date.now(), likes: 0, replies: [] })
 
+  const brief = (
+    <div className="grid gap-3">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="chip bg-sun">DAY {n} / 30</span>
+        <span className="chip">Week {day.week + 1} · {WEEKS[day.week]}</span>
+        {isToday ? <span className="chip bg-pink">Today</span> : <Link to="/today" className="chip no-underline text-ink hover:bg-sun">← Today</Link>}
+      </div>
+      <h1 className="text-[24px] leading-tight">{day.title}</h1>
+      <p className="text-[15px]">{day.brief}</p>
+    </div>
+  )
+
+  const stickies = (
+    <StickyBoard
+      crits={crits}
+      wide={wide}
+      hidden={hidden}
+      adding={adding}
+      setAdding={setAdding}
+      positions={positions}
+      onMove={(id, x, y) => setPositions((p) => ({ ...p, [id]: { x, y } }))}
+      onAgree={(id) => setAgrees((a) => ({ ...a, [id]: (a[id] ?? 0) + 1 }))}
+      onAdd={(text, color, x, y) => {
+        setMine((m) => [...m, { id: 'u' + Date.now(), name: 'You', level: 'Mid', tag: 'Other', text, agrees: 0, color, x, y }])
+        toast('Stuck! Drag it to the right spot.')
+      }}
+    >
+      <DesignPreview day={day} />
+    </StickyBoard>
+  )
+
   return (
-    <div className="grid gap-10 pb-16">
-      {/* Brief: plain text */}
-      <header className="grid max-w-[68ch] gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="chip bg-sun">DAY {n} / 30</span>
-          <span className="chip">Week {day.week + 1} · {WEEKS[day.week]}</span>
-          {isToday ? <span className="chip bg-pink">Today</span> : <Link to="/today" className="chip no-underline text-ink hover:bg-sun">← Back to today</Link>}
-        </div>
-        <h1 className="text-4xl sm:text-5xl">{day.title}</h1>
-        <p className="text-[17px]">{day.brief}</p>
-      </header>
+    <div className="grid min-w-0 gap-10">
+      {/* Phones: brief as plain text above the challenge */}
+      {!wide && <header className="px-4 pt-6">{brief}</header>}
 
-      {/* The challenge: a design-tool canvas, full width */}
-      <section id="challenge" className="scroll-mt-16" aria-label={`The challenge: Day ${n} design`}>
-        <div className="relative rounded-xl border border-[#e4ded4] bg-[#f6f1ea] lg:min-h-[860px]">
-          <Desk toolbar={(api) => <CanvasBar day={day} api={api} hidden={hidden} setHidden={setHidden} adding={adding} setAdding={setAdding} wide={wide} />}>
-            <FloatWin id="remix" title="remix it" width="380px">
-              <RemixSteps day={day} topCrit={topCrit} onSeeCrits={() => setHidden(false)} />
+      {/* The editor: takes the whole screen. Brief, Remix it and Steam room float as draggable windows around the challenge. */}
+      <section id="challenge" aria-label={`The challenge: Day ${n} design`}
+        className={'flex min-w-0 flex-col bg-[#f6f1ea] ' + (wide ? 'h-[calc(100dvh-49px)] min-h-[560px] border-b border-[#e4ded4]' : '')}>
+        <Desk
+          toolbar={(api) => <CanvasBar day={day} api={api} hidden={hidden} setHidden={setHidden} adding={adding} setAdding={setAdding} wide={wide} />}
+          stage={wide ? <Stage n={n}>{stickies}</Stage> : <div className="grid gap-3 px-4 py-6">{stickies}</div>}
+        >
+          {wide && (
+            <FloatWin id="brief" title="the brief" width={WIN_W} maxH="calc(100dvh - 360px)">
+              {brief}
             </FloatWin>
-            <FloatWin id="steam" title="steam room" width="330px" bodyClass="p-4 grid gap-3">
-              <div className="grid grid-cols-[auto_1fr] items-start gap-3">
-                <span className="grid h-11 w-11 place-items-center border-2 border-ink bg-sun font-display text-2xl font-extrabold" aria-hidden="true">!</span>
-                <div>
-                  <h3 className="text-[22px]">Ghosted again?</h3>
-                  <p className="text-[15px]">Rejected after round 3? Smash something.</p>
-                </div>
+          )}
+          <FloatWin id="remix" title="remix it" width={WIN_W}>
+            <RemixSteps day={day} topCrit={topCrit} onSeeCrits={() => setHidden(false)} />
+          </FloatWin>
+          <FloatWin id="steam" title="steam room" width={WIN_W} bodyClass="p-4 grid gap-3">
+            <div className="grid grid-cols-[auto_1fr] items-start gap-3">
+              <span className="grid h-11 w-11 place-items-center border-2 border-ink bg-sun font-display text-2xl font-extrabold" aria-hidden="true">!</span>
+              <div>
+                <h3 className="text-[20px]">Ghosted again?</h3>
+                <p className="text-[14px]">Rejected after round 3? Smash something.</p>
               </div>
-              <div className="flex justify-end">
-                <button type="button" className="btn" onClick={() => navigate('/steam-room')}>Break stuff</button>
-              </div>
-            </FloatWin>
-          </Desk>
-
-          <div className="grid gap-4 px-4 pb-10 pt-6 sm:px-8 lg:pr-[420px]">
-            <SectionLabel n={String(n)} text={day.title} />
-            <SectionLabel n={`${n}a`} text="Desktop · as posted" small />
-            <BrowserFrame>
-              <StickyBoard
-                crits={crits}
-                wide={wide}
-                hidden={hidden}
-                adding={adding}
-                setAdding={setAdding}
-                positions={positions}
-                onMove={(id, x, y) => setPositions((p) => ({ ...p, [id]: { x, y } }))}
-                onAgree={(id) => setAgrees((a) => ({ ...a, [id]: (a[id] ?? 0) + 1 }))}
-                onAdd={(text, color, x, y) => {
-                  setMine((m) => [...m, { id: 'u' + Date.now(), name: 'You', level: 'Mid', tag: 'Other', text, agrees: 0, color, x, y }])
-                  toast('Stuck! Drag it to the right spot.')
-                }}
-              >
-                <DesignPreview day={day} />
-              </StickyBoard>
-            </BrowserFrame>
-            <p className="text-[13px] text-[#6f675c]">Drag stickies to the spot they're about. +1 the ones you'd fix first.</p>
-          </div>
-        </div>
+            </div>
+            <div className="flex justify-end">
+              <button type="button" className="btn" onClick={() => navigate('/steam-room')}>Break stuff</button>
+            </div>
+          </FloatWin>
+        </Desk>
       </section>
 
-      <Comments
-        comments={comments}
-        likedIds={liked}
-        onLike={(id) => setLiked((l) => (l.includes(id) ? l.filter((x) => x !== id) : [...l, id]))}
-        onAdd={(t) => setMyComments((c) => [me(t), ...c])}
-        onReply={(pid, t) => setMyReplies((r) => ({ ...r, [pid]: [...(r[pid] ?? []), me(t)] }))}
-      />
+      <div className="mx-auto w-full max-w-7xl px-4">
+        <Comments
+          comments={comments}
+          likedIds={liked}
+          onLike={(id) => setLiked((l) => (l.includes(id) ? l.filter((x) => x !== id) : [...l, id]))}
+          onAdd={(t) => setMyComments((c) => [me(t), ...c])}
+          onReply={(pid, t) => setMyReplies((r) => ({ ...r, [pid]: [...(r[pid] ?? []), me(t)] }))}
+        />
+      </div>
+    </div>
+  )
+}
+
+// Floating windows narrow on smaller laptops so the challenge keeps the middle of the screen.
+const WIN_W = 'clamp(240px, 19vw, 300px)'
+const DESIGN_RATIO = 1392 / 988 // Day 1 preview; good enough for other days until they get their own
+
+// The challenge, scaled to fit the space between the windows: never wider or taller than the screen.
+function Stage({ n, children }: { n: number; children: ReactNode }) {
+  const area = useRef<HTMLDivElement>(null)
+  const [w, setW] = useState(0)
+  useLayoutEffect(() => {
+    const el = area.current
+    if (!el) return
+    const fit = () => setW(Math.floor(Math.min(el.clientWidth, el.clientHeight * DESIGN_RATIO)))
+    fit()
+    const ro = new ResizeObserver(fit)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  return (
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 py-4" style={{ paddingInline: `calc(${WIN_W} + 32px)` }}>
+      <div className="mx-auto flex w-full items-center justify-between gap-3" style={{ maxWidth: w || undefined }}>
+        <SectionLabel n={`${n}a`} text="Desktop · as posted" small />
+        <span className="hidden truncate text-[12px] text-[#6f675c] xl:inline">Drag stickies onto the spot. +1 what you'd fix first.</span>
+      </div>
+      <div ref={area} className="flex min-h-0 flex-1 items-start justify-center">
+        <div style={{ width: w || '100%' }}>{children}</div>
+      </div>
     </div>
   )
 }
@@ -151,17 +189,6 @@ function SectionLabel({ n, text, small }: { n: string; text: string; small?: boo
     <div className="flex items-center gap-2 text-[#2b2b2b]">
       <span className={(small ? 'bg-[#ebe4d9] text-[#2b2b2b]' : 'bg-[#1f1f1f] text-white') + ' rounded px-1.5 py-0.5 text-[12px] font-bold'}>{n}</span>
       <span className={small ? 'text-[13px] text-[#6f675c]' : 'text-[15px] font-semibold'}>{text}</span>
-    </div>
-  )
-}
-
-function BrowserFrame({ children }: { children: ReactNode }) {
-  return (
-    <div className="overflow-visible rounded-xl bg-white shadow-[0_12px_40px_rgba(60,40,10,0.12)]">
-      <div className="flex items-center gap-1.5 rounded-t-xl border-b border-[#eee] bg-[#f3f3f3] px-3 py-2.5" aria-hidden="true">
-        <span className="h-2.5 w-2.5 rounded-full bg-[#d6d6d6]" /><span className="h-2.5 w-2.5 rounded-full bg-[#d6d6d6]" /><span className="h-2.5 w-2.5 rounded-full bg-[#d6d6d6]" />
-      </div>
-      <div className="overflow-visible rounded-b-xl">{children}</div>
     </div>
   )
 }

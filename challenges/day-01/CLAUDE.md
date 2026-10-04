@@ -13,12 +13,12 @@
 Maya is not a finance person. If she has to think about what a number means, the dashboard failed. Plain words over jargon ("months of money left", not "runway" alone).
 
 ## Sample data (use the same numbers in Figma and code)
-Date: Monday 20 October 2026 · day 20 of 31 in the month
+Date: Monday 19 October 2026 · day 19 of 31 in the month · 12 days left
 
 | Metric | Value |
 |---|---|
 | Spent this month | €31,240 |
-| Monthly budget | €42,000 (74% used, 65% of the month gone → €4,143 ahead of pace) |
+| Monthly budget | €42,000 (74% used, 61% of the month gone → €5,498 ahead of pace; even pace by 19 Oct = €25,742; at this pace the budget runs out around 26 Oct) |
 | Cash in bank | €612,000 |
 | Average monthly burn | €51,000 |
 | Months of money left | 12 |

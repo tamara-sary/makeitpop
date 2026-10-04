@@ -5,14 +5,16 @@ import { useStored } from '../lib/store'
 // Poolsuite-style desk: on wide screens, windows float and can be dragged by their title bar,
 // closed with ✕ and reopened from the dock. On narrow screens they stack in normal flow.
 
-export type WinId = 'remix' | 'steam'
+export type WinId = 'brief' | 'remix' | 'steam'
 type Pos = { x: number; y: number } // x as fraction of desk width, y in px
 type Layout = Record<WinId, Pos & { open: boolean }>
 
 // x is clamped so a window never leaves the desk: x = 1 means "pinned right"
+// Brief sits left of the challenge, Remix + Steam room on the right, so nothing covers the screen.
 const DEFAULTS: Layout = {
-  remix: { x: 0.985, y: 70, open: true },
-  steam: { x: 0.985, y: 620, open: true },
+  brief: { x: 0, y: 16, open: true },
+  remix: { x: 1, y: 16, open: true },
+  steam: { x: 0, y: -16, open: true }, // y < 0 = pinned that far from the bottom
 }
 
 export type DeskApi = { isOpen: (id: WinId) => boolean; toggle: (id: WinId) => void; reset: () => void }
@@ -51,11 +53,12 @@ export function useWide() {
 }
 
 // Desk = an overlay layer on top of the canvas. Windows float in it; the canvas stays clickable around them.
-export function Desk({ children, toolbar }: { children: ReactNode; toolbar: (api: DeskApi) => ReactNode }) {
+// `stage` (optional) = the canvas the windows float over; windows then start below the toolbar.
+export function Desk({ children, toolbar, stage }: { children: ReactNode; toolbar: (api: DeskApi) => ReactNode; stage?: ReactNode }) {
   const floating = useWide()
-  const [layout, setLayout] = useStored<Layout>('desk-v7', DEFAULTS)
-  const [z, setZ] = useState<Record<WinId, number>>({ remix: 2, steam: 1 })
-  const top = useRef(3)
+  const [layout, setLayout] = useStored<Layout>('desk-v8', DEFAULTS)
+  const [z, setZ] = useState<Record<WinId, number>>({ brief: 3, remix: 2, steam: 1 })
+  const top = useRef(4)
   const desk = useRef<HTMLDivElement>(null)
 
   const value: DeskCtx = {
@@ -71,14 +74,23 @@ export function Desk({ children, toolbar }: { children: ReactNode; toolbar: (api
   return (
     <Ctx.Provider value={value}>
       {toolbar({ isOpen: (id) => layout[id].open, toggle: (id) => { value.setOpen(id, !layout[id].open); value.front(id) }, reset: () => setLayout(DEFAULTS) })}
-      <div ref={desk} className={floating ? 'pointer-events-none absolute inset-0 z-20' : 'order-last grid gap-6 p-4'}>
-        {children}
-      </div>
+      {stage ? (
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          {stage}
+          <div ref={desk} className={floating ? 'pointer-events-none absolute inset-x-4 inset-y-0 z-20' : 'grid gap-6 p-4'}>
+            {children}
+          </div>
+        </div>
+      ) : (
+        <div ref={desk} className={floating ? 'pointer-events-none absolute inset-0 z-20' : 'order-last grid gap-6 p-4'}>
+          {children}
+        </div>
+      )}
     </Ctx.Provider>
   )
 }
 
-export function FloatWin({ id, title, width = '380px', children, bodyClass = 'p-4' }: { id: WinId; title: string; width?: string; children: ReactNode; bodyClass?: string }) {
+export function FloatWin({ id, title, width = '380px', children, bodyClass = 'p-4', maxH = 'calc(100dvh - 140px)' }: { id: WinId; title: string; width?: string; children: ReactNode; bodyClass?: string; maxH?: string }) {
   const d = useDesk()
   const st = d.layout[id]
   const drag = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(null)
@@ -98,7 +110,7 @@ export function FloatWin({ id, title, width = '380px', children, bodyClass = 'p-
     d.front(id)
     const deskW = d.desk.current!.clientWidth
     const w = self.current!.offsetWidth
-    drag.current = { sx: e.clientX, sy: e.clientY, ox: Math.min(Math.max(st.x * deskW, 0), deskW - w), oy: st.y }
+    drag.current = { sx: e.clientX, sy: e.clientY, ox: Math.min(Math.max(st.x * deskW, 0), deskW - w), oy: self.current!.offsetTop }
     e.currentTarget.setPointerCapture(e.pointerId)
   }
   const onMove = (e: RPointerEvent<HTMLDivElement>) => {
@@ -116,12 +128,12 @@ export function FloatWin({ id, title, width = '380px', children, bodyClass = 'p-
       ref={self}
       id={'win-' + id}
       className="win pointer-events-auto absolute"
-      style={{ left: `calc((100% - ${width}) * ${Math.min(Math.max(st.x, 0), 1)})`, top: st.y, width, zIndex: 10 + d.z[id] }}
+      style={{ left: `calc((100% - ${width}) * ${Math.min(Math.max(st.x, 0), 1)})`, ...(st.y < 0 ? { bottom: -st.y } : { top: st.y }), width, zIndex: 10 + d.z[id] }}
       aria-label={title}
       onPointerDownCapture={() => d.front(id)}
     >
       <TitleBar title={title} className="drag" onClose={() => d.setOpen(id, false)} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} />
-      <div className={bodyClass + ' max-h-[70vh] overflow-y-auto'}>{children}</div>
+      <div className={bodyClass + ' overflow-y-auto'} style={{ maxHeight: maxH }}>{children}</div>
     </section>
   )
 }

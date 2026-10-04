@@ -10,7 +10,7 @@ export type Day = {
   preview?: string // e.g. "/days/day-04.png"
 }
 
-export const TODAY = 4 // prototype: which day is "today"
+export const TODAY = 1 // prototype: which day is "today"
 export const REPO = 'tamara-sary/makeitpop/challenges'
 
 const PROMPTS = [
@@ -90,6 +90,12 @@ export const CRIT_TAGS = ['Hierarchy', 'Data viz', 'Spacing', 'Copy', 'Accessibi
 
 // Sample crits so the prototype isn't empty. Marked as samples in the UI.
 export const SAMPLE_CRITS: Record<number, Crit[]> = {
+  1: [
+    { id: 's1', name: 'Marta', level: 'Senior', tag: 'Copy', text: 'Reads like good news, but for a budget "ahead of pace" means overspending. Say "€5,498 over pace".', agrees: 11, sample: true, x: 3, y: 33, color: 'sun' },
+    { id: 's2', name: 'Jon', level: 'Mid', tag: 'Hierarchy', text: 'Maya has 5 minutes. "Needs your attention" is the actual job, so why is it below the fold?', agrees: 7, sample: true, x: 20, y: 70, color: 'mint' },
+    { id: 's3', name: 'Priya', level: 'Senior', tag: 'Data viz', text: 'Only Eng is blue. Is that an alert or just the biggest? Highlight means something, or nothing.', agrees: 5, sample: true, x: 74, y: 40, color: 'pink' },
+    { id: 's4', name: 'Leo', level: 'Mid', tag: 'Accessibility', text: '74% sits in "Watch", but only the arc says so. Put the word next to the number.', agrees: 3, sample: true, x: 58, y: 78, color: 'sky' },
+  ],
   4: [
     { id: 's1', name: 'Marta', level: 'Senior', tag: 'Hierarchy', text: 'Drop-off is the story. Make step 4 the hero and annotate why people leave there. Everything else is noise.', agrees: 12, sample: true, x: 52, y: 58, color: 'sun' },
     { id: 's2', name: 'Jon', level: 'Mid', tag: 'Copy', text: 'KPI labels need units and a time frame. 38% of what, retained after week 1?', agrees: 8, sample: true, x: 70, y: 16, color: 'mint' },
@@ -117,6 +123,13 @@ export type Comment = {
 
 const H = 3600_000
 export const SAMPLE_COMMENTS: Record<number, Comment[]> = {
+  1: [
+    { id: 'c1', name: 'Priya', level: 'Senior', at: Date.now() - 2 * H, likes: 12, sample: true, text: 'Nice brief. Maya is not a finance person, so every number should answer "is this good or bad?" on its own. "12 months" + "Healthy" does that. The spend card doesn\'t yet.', replies: [
+      { id: 'c1r1', name: 'Jon', level: 'Mid', at: Date.now() - 1 * H, likes: 3, sample: true, text: 'Same feeling. In my remix the chip says "Over pace" in red and the tooltip explains it. Way faster to read.', replies: [] },
+    ] },
+    { id: 'c2', name: 'Marta', level: 'Senior', at: Date.now() - 5 * H, likes: 8, sample: true, text: 'Hot take: the 1M/3M/6M/1Y toggle doesn\'t belong here. It\'s a Monday check of this month. Remove it and give the space to the attention list.', replies: [] },
+    { id: 'c3', name: 'Leo', level: 'Mid', at: Date.now() - 7 * H, likes: 2, sample: true, text: 'Posted my remix on LinkedIn: moved "Needs your attention" to the top and made the share button send a summary. Feedback welcome!', replies: [] },
+  ],
   4: [
     { id: 'c1', name: 'Priya', level: 'Senior', at: Date.now() - 2 * H, likes: 14, sample: true, text: 'Interesting one. The real question is who reads this on Monday. A growth lead wants "what changed since last week", not totals. I would add a week-over-week delta to every number.', replies: [
       { id: 'c1r1', name: 'Jon', level: 'Mid', at: Date.now() - 1 * H, likes: 3, sample: true, text: 'Agree. Tried it in my remix, deltas made the drop at step 4 jump out without any extra color.', replies: [] },

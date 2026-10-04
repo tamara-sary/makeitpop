@@ -1,5 +1,5 @@
 import math
-daily=[620,540,980,1150,300,180,4200,890,760,1320,280,150,3600,1100,940,1210,350,210,9800,2660]
+daily=[620,540,980,1150,300,180,4200,890,760,1320,430,3600,1100,940,1210,350,210,9800,2660]  # 1-19 Oct
 assert sum(daily)==31240
 cum=[];t=0
 for d in daily: t+=d; cum.append(t)
@@ -14,7 +14,7 @@ tx,ty=pts[-1]
 grid="".join(f'<line x1="0" x2="{W}" y1="{Y(v):.1f}" y2="{Y(v):.1f}" class="grid"/><text x="-10" y="{Y(v)+4:.1f}" class="ylab" text-anchor="end">€{v//1000}k</text>' for v in [0,10000,20000,30000,40000])
 xl="".join(f'<text x="{X(d):.1f}" y="{H+22}" class="xlab" text-anchor="middle">{d} Oct</text>' for d in [1,8,15,22,29])
 by=Y(42000)
-svg=f'''<svg viewBox="-44 -10 {W+60} {H+40}" class="chart" role="img" aria-label="Cumulative spend this month: 31,240 euros by 20 October, above the even budget pace line">
+svg=f'''<svg viewBox="-44 -10 {W+60} {H+40}" class="chart" role="img" aria-label="Cumulative spend this month: 31,240 euros by 19 October, above the even budget pace line">
   <defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2F6BFF" stop-opacity=".22"/><stop offset="1" stop-color="#2F6BFF" stop-opacity="0"/></linearGradient></defs>
   {grid}
   <line x1="0" x2="{W}" y1="{by:.1f}" y2="{by:.1f}" class="budget"/>
@@ -113,7 +113,7 @@ html=f'''<!doctype html>
     </header>
     <div class="content">
       <div class="hello">
-        <div><h1>Good morning, Maya</h1><p>Monday, 20 October · 11 days left this month</p></div>
+        <div><h1>Good morning, Maya</h1><p>Monday, 19 October · 12 days left this month</p></div>
         <button class="primary">{ic('share')}Share with founders</button>
       </div>
       <div class="grid">
@@ -123,17 +123,17 @@ html=f'''<!doctype html>
             <div>
               <h2>Spent this month</h2>
               <div class="big">€31,240 <span class="of">of €42,000 budget</span></div>
-              <div class="chips"><span class="chip warn">€4,143 ahead of pace</span><span class="muted">74% of the budget used, 11 days to go</span></div>
+              <div class="chips"><span class="chip warn">€5,498 ahead of pace</span><span class="muted">74% of the budget used, 12 days to go</span></div>
             </div>
             <div class="seg" role="group" aria-label="Range"><button class="on">1M</button><button>3M</button><button>6M</button><button>1Y</button></div>
           </div>
           <div class="chart-wrap">
             {svg}
             <div class="tip" style="left:{tipL:.1f}%;top:{tipT:.1f}%">
-              <span class="chip warn sm">+€4,143 vs pace</span>
+              <span class="chip warn sm">+€5,498 vs pace</span>
               <strong>€31,240</strong>
-              <span class="lg"><i class="sw b"></i>Spent by 20 Oct</span>
-              <span class="lg"><i class="sw g"></i>€27,097 at even pace</span>
+              <span class="lg"><i class="sw b"></i>Spent by 19 Oct</span>
+              <span class="lg"><i class="sw g"></i>€25,742 at even pace</span>
             </div>
           </div>
         </section>
@@ -163,7 +163,7 @@ html=f'''<!doctype html>
             <text x="110" y="100" text-anchor="middle" class="gval">74%</text>
             <text x="110" y="120" text-anchor="middle" class="gsub">€31,240 of €42,000</text>
           </svg>
-          <p class="muted c">At this pace you'll reach the budget around 27 Oct</p>
+          <p class="muted c">At this pace you'll reach the budget around 26 Oct</p>
         </section>
         </div>
       </div>
@@ -173,7 +173,7 @@ html=f'''<!doctype html>
 </body>
 </html>
 '''
-open('index.html','w').write(html)
+open('challenges/day-01/index.html','w').write(html)
 print('ok',round(tipL,1),round(tipT,1))
 
 # ---------- inline-attribute SVGs for Figma (no CSS classes) ----------

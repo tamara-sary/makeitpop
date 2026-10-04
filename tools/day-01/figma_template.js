@@ -191,7 +191,7 @@ topR.appendChild(avatar(36));
 const content = box("Content", "VERTICAL", 20, 24); add(main, content, "FILL");
 const hello = box("Greeting", "HORIZONTAL", 16, 0); hello.primaryAxisAlignItems = "SPACE_BETWEEN"; hello.counterAxisAlignItems = "MAX"; add(content, hello, "FILL");
 const hi = box("Heading", "VERTICAL", 4, 0); hello.appendChild(hi);
-hi.appendChild(txt("Good morning, Maya", 26, "Bold")); hi.appendChild(txt("Monday, 20 October " + DOT + " 11 days left this month", 14, "Regular", "muted"));
+hi.appendChild(txt("Good morning, Maya", 26, "Bold")); hi.appendChild(txt("Monday, 19 October " + DOT + " 12 days left this month", 14, "Regular", "muted"));
 const share = BTN.c.createInstance(); hello.appendChild(share);
 
 const grid = box("Grid", "HORIZONTAL", 20, 0); add(content, grid, "FILL");
@@ -206,7 +206,7 @@ sl.appendChild(txt("Spent this month", 15, "Semi Bold", "ink2"));
 const bigRow = box("Big number", "HORIZONTAL", 8, 0); bigRow.counterAxisAlignItems = "BASELINE"; sl.appendChild(bigRow);
 bigRow.appendChild(txt(EUR + "31,240", 34, "Bold")); bigRow.appendChild(txt("of " + EUR + "42,000 budget", 15, "Medium", "muted"));
 const chips = box("Status", "HORIZONTAL", 10, 0); chips.counterAxisAlignItems = "CENTER"; sl.appendChild(chips);
-chips.appendChild(chip(EUR + "4,143 ahead of pace", "amber", "amberSoft")); chips.appendChild(txt("74% of the budget used, 11 days to go", 13, "Regular", "muted"));
+chips.appendChild(chip(EUR + "5,498 ahead of pace", "amber", "amberSoft")); chips.appendChild(txt("74% of the budget used, 12 days to go", 13, "Regular", "muted"));
 function seg(labels, small) {
   const s = box("Segmented", "HORIZONTAL", 2, 3, "surface"); s.cornerRadius = 10;
   labels.forEach(function (l, i) {
@@ -224,10 +224,10 @@ const scale = 652 / chart.width; chart.rescale(scale);
 chartWrap.resize(652, chart.height); chartWrap.appendChild(chart); chart.x = 0; chart.y = 0;
 const tip = box("Tooltip", "VERTICAL", 4, [10, 12, 10, 12], "panel"); tip.cornerRadius = 12; stroke(tip, "line");
 tip.effects = [{ type: "DROP_SHADOW", color: { r: 0.08, g: 0.12, b: 0.24, a: 0.12 }, offset: { x: 0, y: 10 }, radius: 30, spread: 0, visible: true, blendMode: "NORMAL" }];
-const tc = chip("+" + EUR + "4,143 vs pace", "amber", "amberSoft"); tc.paddingTop = 2; tc.paddingBottom = 2; tip.appendChild(tc);
+const tc = chip("+" + EUR + "5,498 vs pace", "amber", "amberSoft"); tc.paddingTop = 2; tc.paddingBottom = 2; tip.appendChild(tc);
 tip.appendChild(txt(EUR + "31,240", 17, "Bold"));
 function legend(label, k) { const l = box("Legend", "HORIZONTAL", 6, 0); l.counterAxisAlignItems = "CENTER"; const sw = figma.createRectangle(); sw.resize(12, 3); sw.cornerRadius = 2; sw.fills = paint(k); l.appendChild(sw); l.appendChild(txt(label, 12, "Regular", "ink2")); return l; }
-tip.appendChild(legend("Spent by 20 Oct", "blue")); tip.appendChild(legend(EUR + "27,097 at even pace", "muted"));
+tip.appendChild(legend("Spent by 19 Oct", "blue")); tip.appendChild(legend(EUR + "25,742 at even pace", "muted"));
 chartWrap.appendChild(tip);
 tip.x = A.tipX * scale - tip.width - 14; tip.y = A.tipY * scale - tip.height / 2;
 
@@ -280,7 +280,7 @@ const gw = figma.createFrame(); gw.name = "Gauge"; gw.fills = []; gw.clipsConten
 const gsv = svgNode(A.gauge, "Gauge arcs (vector)"); gsv.rescale(1.15); gw.resize(gsv.width, gsv.height); gw.appendChild(gsv); gsv.x = 0; gsv.y = 0;
 const gval = txt("74%", 32, "Bold"); gw.appendChild(gval); gval.x = gw.width / 2 - gval.width / 2; gval.y = gw.height - 64;
 const gsub = txt(EUR + "31,240 of " + EUR + "42,000", 12, "Regular", "muted"); gw.appendChild(gsub); gsub.x = gw.width / 2 - gsub.width / 2; gsub.y = gw.height - 24;
-gauge.appendChild(txt("At this pace you'll reach the budget around 27 Oct", 13, "Regular", "muted"));
+gauge.appendChild(txt("At this pace you'll reach the budget around 26 Oct", 13, "Regular", "muted"));
 
 root.locked = false;
 

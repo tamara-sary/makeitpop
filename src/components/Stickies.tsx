@@ -122,7 +122,7 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
           const p = posOf(c, i)
           return (
             <Sticky key={c.id} crit={c} i={i} onAgree={() => onAgree(c.id)}
-              className="absolute cursor-grab touch-none select-none active:cursor-grabbing"
+              className="absolute w-[170px] cursor-grab touch-none select-none active:cursor-grabbing"
               style={{ left: `${p.x}%`, top: `${p.y}%`, zIndex: drag.current?.id === c.id ? 30 : 10 + i }}
               onPointerDown={(e) => down(c.id, e, p.x, p.y)} />
           )
