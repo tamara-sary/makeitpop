@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import type { Day } from '../data/days'
 
 // Shows the day's design. Uses a real screenshot when one exists in /public/days,
 // a built-in mock for day 4, and a placeholder otherwise.
-export function DesignPreview({ day }: { day: Day }) {
+export function DesignPreview({ day, live = false }: { day: Day; live?: boolean }) {
+  if (live && day.live) return <LiveDesign day={day} />
   if (day.preview) {
-    return <img src={day.preview} alt={`Day ${day.n} design: ${day.title}`} className="block w-full drop-shadow-[0_12px_30px_rgba(60,40,10,0.14)]" draggable={false} />
+    // no CSS filter here: filters make the browser rasterise the layer, which blurs it once the canvas zooms
+    return <img src={day.preview} alt={`Day ${day.n} design: ${day.title}`} className="block w-full" draggable={false} />
   }
   if (day.n === 4) return <FunnelMock />
   return (
@@ -15,6 +18,34 @@ export function DesignPreview({ day }: { day: Day }) {
         <p className="text-muted">Add a screenshot at /public/days/day-{String(day.n).padStart(2, '0')}.png</p>
       </div>
     </div>
+  )
+}
+
+// The challenge's own HTML in a same-origin iframe. Vectors + real text, so zooming in on the canvas stays sharp
+// (a PNG export blurs past 100%). Look-only: the canvas handles pointer input, stickies sit on top.
+function LiveDesign({ day }: { day: Day }) {
+  const [h, setH] = useState(988)
+  return (
+    <iframe
+      src={day.live}
+      title={`Day ${day.n} design: ${day.title}`}
+      tabIndex={-1}
+      scrolling="no"
+      className="pointer-events-none block w-full border-0 bg-transparent"
+      style={{ height: h }}
+      onLoad={(e) => {
+        const doc = e.currentTarget.contentDocument
+        if (!doc) return
+        // Strip the kit's page chrome (grey page, padding) so only the app frame sits on the canvas
+        const st = doc.createElement('style')
+        st.textContent = 'html,body{background:transparent!important;padding:0!important;margin:0!important;overflow:hidden!important}'
+        doc.head.appendChild(st)
+        const app = doc.querySelector('.app') as HTMLElement | null
+        const fitH = () => setH(Math.ceil((app ?? doc.body).getBoundingClientRect().height))
+        fitH()
+        doc.fonts?.ready.then(fitH)
+      }}
+    />
   )
 }
 

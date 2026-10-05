@@ -8,6 +8,18 @@ export type Day = {
   brief: string
   figmaUrl?: string // Figma Community file link
   preview?: string // e.g. "/days/day-04.png"
+  live?: string // the code kit rendered live (synced into public/ by scripts/sync-days.mjs): sharp at any zoom
+  handoff?: Handoff // brief written like a design handoff; falls back to `brief` when missing
+}
+
+// The brief as a designer gets it at work: who, when, what they need to answer, how to judge it.
+export type Handoff = {
+  job: string // one line, shown on the design's section tab so the brief is never far away
+  who: string
+  when: string
+  questions: string[] // become the audit checklist
+  failsIf: string
+  notes: string[]
 }
 
 export const TODAY = 1 // prototype: which day is "today"
@@ -45,6 +57,18 @@ const PROMPTS = [
 ]
 
 const PREVIEWS: Record<number, string> = { 1: '/days/day-01.png' }
+const LIVE: Record<number, string> = { 1: '/days/day-01/index.html' }
+
+const HANDOFFS: Record<number, Handoff> = {
+  1: {
+    job: 'Maya, 5 min on Monday: on track? where did it go? what needs me?',
+    who: 'Maya, ops lead at Brightloop, a 22-person startup with no finance team. Not a finance person.',
+    when: 'Every Monday, 5 minutes, before the founders\' meeting.',
+    questions: ['Are we on track?', 'Where did the money go?', 'What needs my action?'],
+    failsIf: 'If she has to think about what a number means, the dashboard failed.',
+    notes: ['Desktop screen', 'Sample data is real: every number adds up'],
+  },
+}
 
 export const WEEKS = ['Dashboards', 'Landing pages', 'Mix & flows', 'Case studies']
 
@@ -61,6 +85,8 @@ export const DAYS: Day[] = PROMPTS.map((title, i) => {
     week: n <= 7 ? 0 : n <= 14 ? 1 : n <= 21 ? 2 : 3,
     brief: BRIEFS[n] ?? 'Brief coming with the kit. Start from the prompt above and the top crits.',
     preview: PREVIEWS[n],
+    live: LIVE[n],
+    handoff: HANDOFFS[n],
   }
 })
 // 30-day tracker has 28 prompts; days 29-30 are open

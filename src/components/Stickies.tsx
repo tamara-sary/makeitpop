@@ -1,4 +1,4 @@
-import { useRef, useState, type CSSProperties, type PointerEvent as RPointerEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as RPointerEvent, type ReactNode } from 'react'
 import type { Crit, StickyColor } from '../data/days'
 
 // Crit stickies pinned on the challenge screen. Drag to move, +1 to agree.
@@ -43,6 +43,17 @@ export function Sticky({ crit, i, onAgree, style, className = '', children, onPo
 
 type Pos = Record<string, { x: number; y: number }>
 
+// Stickies are canvas objects: they zoom with the design, like cards in Figma/FigJam.
+// Drawn at 1.5× world size so they're readable at the zoom a laptop opens on (~60%).
+const ON_CANVAS: CSSProperties = { transform: 'scale(1.5)', transformOrigin: '0 0' }
+
+// The "add crit" cursor: an ink pin with a plus, so it's obvious what a click will do.
+function AddPin() {
+  return (
+    <span className="grid h-9 w-9 place-items-center rounded-full rounded-tl-none border-2 border-ink bg-pink font-display text-[22px] font-extrabold leading-none text-ink shadow-[3px_3px_0_#161616]" aria-hidden="true">+</span>
+  )
+}
+
 export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hidden, adding, setAdding, children }: {
   hidden: boolean
   adding: boolean
@@ -58,11 +69,26 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
   const board = useRef<HTMLDivElement>(null)
   const drag = useRef<{ id: string; sx: number; sy: number; ox: number; oy: number } | null>(null)
   const [draftState, setDraftState] = useState<{ color: StickyColor; text: string }>({ color: 'sun', text: '' })
-  const draft = adding ? draftState : null
+  // Adding on the canvas = two steps: a pin follows the mouse (ghost), click pins it, then you type.
+  const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null)
+  const [pinned, setPinned] = useState<{ x: number; y: number } | null>(null)
+  const placing = wide && adding && !pinned
+  const draft = adding && (!wide || pinned) ? draftState : null
   const setDraft = (d: { color: StickyColor; text: string } | null) => {
     if (d) setDraftState(d)
-    else { setDraftState({ color: 'sun', text: '' }); setAdding(false) }
+    else { setDraftState({ color: 'sun', text: '' }); setPinned(null); setGhost(null); setAdding(false) }
   }
+  const pct = (e: { clientX: number; clientY: number }) => {
+    const r = board.current!.getBoundingClientRect()
+    return { x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 }
+  }
+  // Esc cancels, like any design tool
+  useEffect(() => {
+    if (!adding) return
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') setDraft(null) }
+    window.addEventListener('keydown', k)
+    return () => window.removeEventListener('keydown', k)
+  })
 
   const posOf = (c: Crit, i: number) => positions[c.id] ?? { x: c.x ?? 8 + (i % 4) * 22, y: c.y ?? 10 + Math.floor(i / 4) * 30 }
 
@@ -72,6 +98,7 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
     e.currentTarget.setPointerCapture(e.pointerId)
   }
   const move = (e: RPointerEvent<HTMLDivElement>) => {
+    if (placing && board.current) { setGhost(pct(e)); return }
     if (!drag.current || !board.current) return
     const r = board.current.getBoundingClientRect()
     const nx = drag.current.ox + ((e.clientX - drag.current.sx) / r.width) * 100
@@ -96,7 +123,7 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
       <div className="flex gap-2">
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => setDraft(null)}>Cancel</button>
         <button type="button" className="btn btn-sm bg-paper" disabled={draft.text.trim().length < 5}
-          onClick={() => { onAdd(draft.text.trim(), draft.color, 40, 30); setDraft(null) }}>Stick it</button>
+          onClick={() => { onAdd(draft.text.trim(), draft.color, pinned?.x ?? 40, pinned?.y ?? 30); setDraft(null) }}>Stick it</button>
       </div>
     </Sticky>
   )
@@ -116,18 +143,40 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
 
   return (
     <div className="grid gap-3">
-      <div ref={board} className="relative" onPointerMove={move} onPointerUp={up}>
+      <div ref={board} className="relative" onPointerMove={move} onPointerUp={up}
+        onPointerLeave={() => placing && setGhost(null)}
+        onPointerDown={(e) => {
+          if (!placing || e.button !== 0) return
+          // preventDefault stops the click's own focus change, which would steal focus from the new sticky's text box
+          e.preventDefault(); e.stopPropagation(); setPinned(pct(e))
+          requestAnimationFrame(() => document.getElementById('sticky-draft')?.focus())
+        }}
+        style={{ cursor: placing ? 'none' : undefined }}>
         {children}
         {!hidden && crits.map((c, i) => {
           const p = posOf(c, i)
+          // Wrapper divides by the canvas zoom (--inv), so stickies stay readable however far the design is zoomed out
           return (
-            <Sticky key={c.id} crit={c} i={i} onAgree={() => onAgree(c.id)}
-              className="absolute w-[170px] cursor-grab touch-none select-none active:cursor-grabbing"
-              style={{ left: `${p.x}%`, top: `${p.y}%`, zIndex: drag.current?.id === c.id ? 30 : 10 + i }}
-              onPointerDown={(e) => down(c.id, e, p.x, p.y)} />
+            <div key={c.id} className="absolute" style={{ left: `${p.x}%`, top: `${p.y}%`, zIndex: drag.current?.id === c.id ? 30 : 10 + i, pointerEvents: placing ? 'none' : undefined, ...ON_CANVAS }}>
+              <Sticky crit={c} i={i} onAgree={() => onAgree(c.id)}
+                className="w-[170px] cursor-grab touch-none select-none active:cursor-grabbing"
+                onPointerDown={(e) => down(c.id, e, p.x, p.y)} />
+            </div>
           )
         })}
-        {draft && <div className="absolute left-[40%] top-[30%] z-40">{draftNote}</div>}
+        {draft && pinned && (
+          <div className="absolute z-40" style={{ left: `${pinned.x}%`, top: `${pinned.y}%`, ...ON_CANVAS }}>
+            <AddPin />
+            <div className="ml-6 -mt-2">{draftNote}</div>
+          </div>
+        )}
+        {placing && ghost && (
+          // Ghost follows the mouse: the pin's tip is the exact spot the crit will point at
+          <div className="pointer-events-none absolute z-50" style={{ left: `${ghost.x}%`, top: `${ghost.y}%`, ...ON_CANVAS }}>
+            <AddPin />
+            <span className="mt-1 block whitespace-nowrap border-2 border-ink bg-paper px-1.5 py-0.5 font-pixel text-[10px]">CLICK THE SPOT · ESC TO CANCEL</span>
+          </div>
+        )}
       </div>
     </div>
   )
