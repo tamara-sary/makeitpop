@@ -103,7 +103,10 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
     const r = board.current.getBoundingClientRect()
     const nx = drag.current.ox + ((e.clientX - drag.current.sx) / r.width) * 100
     const ny = drag.current.oy + ((e.clientY - drag.current.sy) / r.height) * 100
-    onMove(drag.current.id, Math.min(Math.max(nx, -4), 90), Math.min(Math.max(ny, -4), 92))
+    // Stickies can hang a little off the design's edges, like on a real wall
+    const x = Math.min(Math.max(nx, -12), 96), y = Math.min(Math.max(ny, -12), 96)
+    if (drag.current.id === 'draft') setPinned({ x, y }) // your own sticky moves while you're still writing it
+    else onMove(drag.current.id, x, y)
   }
   const up = () => { drag.current = null }
 
@@ -165,7 +168,8 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
           )
         })}
         {draft && pinned && (
-          <div className="absolute z-40" style={{ left: `${pinned.x}%`, top: `${pinned.y}%`, ...ON_CANVAS }}>
+          <div className="absolute z-40 cursor-grab touch-none active:cursor-grabbing" style={{ left: `${pinned.x}%`, top: `${pinned.y}%`, ...ON_CANVAS }}
+            onPointerDown={(e) => down('draft', e, pinned.x, pinned.y)}>
             <AddPin />
             <div className="ml-6 -mt-2">{draftNote}</div>
           </div>

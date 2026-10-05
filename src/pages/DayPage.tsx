@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { DesignPreview } from '../components/DesignPreview'
 import { RemixSteps, ShareStep } from '../components/RemixKit'
@@ -37,6 +37,25 @@ export default function DayPage() {
   const [focus, setFocus] = useState<Focus>({ view: briefSeen ? 'original' : 'brief', n: 0 })
   const view = focus.view
   const [steamOpen, setSteamOpen] = useStored<boolean>('steam-open', true)
+  // Steam room card floats over the canvas: drag it by its title bar, it remembers where you left it.
+  // Stored as distance from the bottom-right corner, so it stays put when the window resizes.
+  const [steamPos, setSteamPos] = useStored<{ r: number; b: number } | null>('steam-pos', null)
+  const steamDragRef = useRef<{ sx: number; sy: number; r: number; b: number; maxR: number; maxB: number } | null>(null)
+  const steamDrag = {
+    onPointerDown: (e: ReactPointerEvent<HTMLDivElement>) => {
+      const card = e.currentTarget.parentElement!.parentElement! // title bar → section → positioned wrapper
+      const box = card.offsetParent as HTMLElement
+      const pos = steamPos ?? { r: 16, b: 16 }
+      steamDragRef.current = { sx: e.clientX, sy: e.clientY, ...pos, maxR: box.clientWidth - card.offsetWidth, maxB: box.clientHeight - card.offsetHeight }
+      e.currentTarget.setPointerCapture(e.pointerId)
+    },
+    onPointerMove: (e: ReactPointerEvent<HTMLDivElement>) => {
+      const d = steamDragRef.current
+      if (!d) return
+      setSteamPos({ r: Math.min(Math.max(d.r - (e.clientX - d.sx), 0), d.maxR), b: Math.min(Math.max(d.b - (e.clientY - d.sy), 0), d.maxB) })
+    },
+    onPointerUp: () => { steamDragRef.current = null },
+  }
 
   // Blind audit: other people's crits stay hidden until you've added your own, so they can't anchor you.
   const locked = mine.length === 0
@@ -91,7 +110,7 @@ export default function DayPage() {
 
   const steam = (
     <section className="win w-[300px]" aria-label="Steam room">
-      <TitleBar title="steam room" onClose={() => setSteamOpen(false)} />
+      <TitleBar title="steam room" onClose={() => setSteamOpen(false)} {...(wide ? steamDrag : {})} className={wide ? 'drag' : ''} />
       <div className="flex items-center gap-3 p-3">
         <span className="grid h-9 w-9 flex-none place-items-center border-2 border-ink bg-sun font-display text-xl font-extrabold" aria-hidden="true">!</span>
         <strong className="flex-1 whitespace-nowrap font-display text-[17px] leading-tight">Ghosted again?</strong>
@@ -155,8 +174,8 @@ export default function DayPage() {
         className="flex h-[calc(100dvh-49px)] min-h-[560px] min-w-0 flex-col border-b border-[#e4ded4] bg-[#f3eee6]">
         <CanvasBar day={day} view={view} setView={setView} locked={locked} count={othersCount} hidden={hiddenPref} setHidden={setHidden}
           adding={adding} setAdding={(v) => { if (v && view !== 'original') setView('original'); setAdding(v) }} steamOpen={steamOpen} setSteamOpen={setSteamOpen} />
-        <Canvas focus={focus} onFocus={setView} sections={sections} avoid={steamOpen ? STEAM_CARD : undefined}>
-          {steamOpen && <div className="absolute bottom-4 right-4 z-30">{steam}</div>}
+        <Canvas focus={focus} onFocus={setView} sections={sections} avoid={steamOpen && !steamPos ? STEAM_CARD : undefined}>
+          {steamOpen && <div className="absolute z-30" style={{ right: steamPos?.r ?? 16, bottom: steamPos?.b ?? 16 }}>{steam}</div>}
         </Canvas>
       </section>
       <div id="discussion" className="mx-auto w-full max-w-7xl scroll-mt-16 px-4">{commentsBlock}</div>
@@ -222,28 +241,34 @@ function LockIcon() {
 }
 
 function CritLock({ locked, count, hidden, setHidden, onAdd }: { locked: boolean; count: number; hidden: boolean; setHidden: (v: boolean) => void; onAdd: () => void }) {
+  const toast = useToast()
+  const toggle = () => {
+    if (locked) toast(`Nothing to hide yet: the ${count} crits stay hidden until you add yours.`)
+    setHidden(!hidden)
+  }
   // Shift+C toggles crits, so you can flip between "clean screen" and "what others saw" while zoomed in
   useEffect(() => {
-    if (locked) return
     const k = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
-      if (e.shiftKey && e.code === 'KeyC' && !/^(INPUT|TEXTAREA)$/.test(t.tagName)) { e.preventDefault(); setHidden(!hidden) }
+      if (e.shiftKey && e.code === 'KeyC' && !/^(INPUT|TEXTAREA)$/.test(t.tagName)) { e.preventDefault(); toggle() }
     }
     window.addEventListener('keydown', k)
     return () => window.removeEventListener('keydown', k)
   })
-  if (locked) {
-    return (
-      <button type="button" onClick={onAdd} className="flex w-fit cursor-pointer items-center gap-1.5 rounded-md border-0 bg-transparent px-2.5 py-1.5 text-[13px] font-semibold text-[#5e5850] hover:bg-black/5">
-        <LockIcon />{count} crits hidden · add yours to see them
-      </button>
-    )
-  }
+  // Hide is always in the same place; the lock is a separate, clearly-labelled way to unlock (it starts a sticky).
   return (
-    <button type="button" aria-pressed={hidden} onClick={() => setHidden(!hidden)} title="Show / hide all crits (Shift C)"
-      className={'flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border-0 px-2.5 py-1.5 text-[13px] font-semibold ' + (hidden ? 'bg-[#3b6ef5] text-white' : 'bg-transparent text-[#2b2b2b] hover:bg-black/5')}>
-      <EyeIcon off={!hidden} />{hidden ? 'Show crits' : 'Hide crits'}
-    </button>
+    <>
+      <button type="button" aria-pressed={hidden} onClick={toggle} title="Show / hide all crits (Shift C)"
+        className={'flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border-0 px-2.5 py-1.5 text-[13px] font-semibold ' + (hidden ? 'bg-[#3b6ef5] text-white' : 'bg-transparent text-[#2b2b2b] hover:bg-black/5')}>
+        <EyeIcon off={!hidden} />{hidden ? 'Show crits' : 'Hide crits'}
+      </button>
+      {locked && (
+        <button type="button" onClick={onAdd} title="Crits stay hidden until you add your own, so they don't bias your audit"
+          className="flex w-fit cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border-0 bg-transparent px-2.5 py-1.5 text-[13px] font-semibold text-[#5e5850] hover:bg-black/5">
+          <LockIcon />Add yours to unlock {count}
+        </button>
+      )}
+    </>
   )
 }
 
