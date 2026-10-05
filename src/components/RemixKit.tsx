@@ -18,7 +18,7 @@ export function RemixSteps({ day, topCrit, locked }: { day: Day; topCrit?: Crit;
   const toast = useToast()
   const slug = `day-${String(day.n).padStart(2, '0')}`
   const command = `npx degit ${REPO}/${slug} my-${slug}-remix`
-  const prompt = `I'm remixing Day ${day.n} of the Make It Pop 30-day UI challenge: "${day.title}".\n\nBrief: ${day.brief}\n\nTop crit: ${topCrit?.text ?? '(none yet)'}\n\nPropose 3 improvements, explain why, then make them. Keep it accessible (WCAG AA).`
+  const prompt = `I'm remixing Day ${day.n} of the Make It Pop 30-day UI challenge: "${day.title}".\n\nBrief: ${day.brief}\n\nTop sticky: ${topCrit?.text ?? '(none yet)'}\n\nPropose 3 improvements, explain why, then make them. Keep it accessible (WCAG AA).`
 
   return (
     <div className="grid gap-6">
@@ -38,7 +38,7 @@ export function RemixSteps({ day, topCrit, locked }: { day: Day; topCrit?: Crit;
             </div>
             {showCode && (
               <div className="grid gap-2">
-                <p className="text-[14px]">Run this, then open the folder in Claude Code or Cursor. The brief and crits are already inside.</p>
+                <p className="text-[14px]">Run this, then open the folder in Claude Code or Cursor. The brief and stickies are already inside.</p>
                 <pre className="code m-0">{command}</pre>
                 <div className="flex flex-wrap items-center gap-3">
                   <CopyButton text={command} label="Copy command" />
@@ -51,11 +51,11 @@ export function RemixSteps({ day, topCrit, locked }: { day: Day; topCrit?: Crit;
         <li className="grid grid-cols-[auto_1fr] gap-3">
           {num(2)}
           <div className="grid gap-2">
-            <strong>Fix what the crits found</strong>
+            <strong>Fix what the stickies found</strong>
             {locked || !topCrit ? (
-              <p className="border-l-4 border-ink/30 pl-3 text-[15px] text-muted">The top crit shows here after you add your own. Audit first, so you see it with fresh eyes.</p>
+              <p className="border-l-4 border-ink/30 pl-3 text-[15px] text-muted">The top sticky shows here after you add your own. Audit first, so you see it with fresh eyes.</p>
             ) : (
-              <blockquote className="m-0 border-l-4 border-pink pl-3 text-[15px]">"{topCrit.text}"<br /><span className="text-[13px] text-muted">Top crit · {topCrit.name}</span></blockquote>
+              <blockquote className="m-0 border-l-4 border-pink pl-3 text-[15px]">"{topCrit.text}"<br /><span className="text-[13px] text-muted">Top sticky · {topCrit.name}</span></blockquote>
             )}
           </div>
         </li>

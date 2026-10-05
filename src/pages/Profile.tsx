@@ -22,7 +22,7 @@ function Join({ onJoin }: { onJoin: (p: P) => void }) {
     <div className="mx-auto grid w-full max-w-xl gap-6">
       <header className="grid gap-2">
         <h1 className="text-4xl sm:text-5xl">Make your profile</h1>
-        <p className="text-[17px]">Your crits and remixes in one place, so you can see how your eye changes over 30 days.</p>
+        <p className="text-[17px]">Your stickies and remixes in one place, so you can see how your eye changes over 30 days.</p>
       </header>
       <form className="win grid gap-4 p-5" onSubmit={(e) => { e.preventDefault(); onJoin({ name: name.trim(), level, linkedin: linkedin.trim() || undefined, joined: Date.now() }) }}>
         <label className="grid gap-1.5">
@@ -64,7 +64,7 @@ function Dashboard({ profile, onLeave }: { profile: P; onLeave: () => void }) {
         <div className="grid gap-2">
           <span className="chip w-fit bg-sun">{profile.level} designer</span>
           <h1 className="text-4xl sm:text-5xl">{profile.name}</h1>
-          <p className="text-muted">Joined {new Date(profile.joined).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })} · {crits.length} crit{crits.length === 1 ? '' : 's'} · {shots.length} remix{shots.length === 1 ? '' : 'es'}</p>
+          <p className="text-muted">Joined {new Date(profile.joined).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })} · {crits.length} {crits.length === 1 ? 'sticky' : 'stickies'} · {shots.length} remix{shots.length === 1 ? '' : 'es'}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {profile.linkedin && <a className="btn btn-ghost btn-sm" href={profile.linkedin} target="_blank" rel="noreferrer">LinkedIn ↗</a>}
@@ -99,9 +99,9 @@ function Dashboard({ profile, onLeave }: { profile: P; onLeave: () => void }) {
       </section>
 
       <section className="grid gap-4" aria-labelledby="my-crits">
-        <h2 id="my-crits" className="text-3xl">Your crits</h2>
+        <h2 id="my-crits" className="text-3xl">Your stickies</h2>
         {crits.length === 0 ? (
-          <Empty text="No crits yet. Pin one on today's design: it also unlocks everyone else's." cta="Crit today's design" to="/today" />
+          <Empty text="No stickies yet. Pin one on today's design: it also unlocks everyone else's." cta="Add a sticky to today's design" to="/today" />
         ) : (
           <ul className="m-0 grid list-none gap-5 p-0 sm:grid-cols-2 lg:grid-cols-4">
             {crits.map(({ day, crit }, i) => (

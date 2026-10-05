@@ -6,7 +6,7 @@ export default function Archive() {
     <div className="grid gap-8">
       <header className="grid gap-2">
         <h1 className="text-4xl sm:text-5xl">The 30-day challenge</h1>
-        <p className="max-w-[60ch] text-[17px]">One design a day, four themes. Missed one? Every past day stays open to crit and remix.</p>
+        <p className="max-w-[60ch] text-[17px]">One design a day, four themes. Missed one? Every past day stays open for stickies and remixes.</p>
       </header>
       {WEEKS.map((w, wi) => (
         <section key={w} className="grid gap-3" aria-labelledby={`wk-${wi}`}>

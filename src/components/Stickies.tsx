@@ -54,8 +54,9 @@ function AddPin() {
   )
 }
 
-export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hidden, adding, setAdding, children }: {
+export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hidden, hideDraft = false, adding, setAdding, children }: {
   hidden: boolean
+  hideDraft?: boolean // Hide also tucks away the sticky you're still writing (its text is kept)
   adding: boolean
   setAdding: (v: boolean) => void
   crits: Crit[]
@@ -110,10 +111,14 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
   }
   const up = () => { drag.current = null }
 
+  // Any text counts: a 4-letter note like "test" or "why?" is a real sticky too
+  const canStick = !!draft && draft.text.trim().length > 0
+  const stick = () => { if (draft && canStick) { onAdd(draft.text.trim(), draft.color, pinned?.x ?? 40, pinned?.y ?? 30); setDraft(null) } }
+
   const draftNote = draft && (
     <Sticky crit={{ id: 'draft', name: 'You', level: 'Mid', tag: '', text: '', agrees: 0, color: draft.color }} i={0}>
       <div className="flex items-center justify-between gap-2">
-        <label className="font-pixel text-[10px]" htmlFor="sticky-draft">YOUR CRIT</label>
+        <label className="font-pixel text-[10px]" htmlFor="sticky-draft">YOUR STICKY</label>
         <div className="flex gap-1" role="group" aria-label="Sticky colour">
           {(Object.keys(STICKY_BG) as StickyColor[]).map((c) => (
             <button key={c} type="button" aria-label={c} aria-pressed={draft.color === c} onClick={() => setDraft({ ...draft, color: c })}
@@ -122,11 +127,12 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
         </div>
       </div>
       <textarea id="sticky-draft" autoFocus className="min-h-20 w-full resize-none border-0 bg-transparent text-[14px] font-medium outline-none placeholder:text-ink/60"
-        placeholder="What's off here, and why?" value={draft.text} onChange={(e) => setDraft({ ...draft, text: e.target.value })} />
+        placeholder="What's off here, and why?" value={draft.text} onChange={(e) => setDraft({ ...draft, text: e.target.value })}
+        onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); stick() } }} />
       <div className="flex gap-2">
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => setDraft(null)}>Cancel</button>
-        <button type="button" className="btn btn-sm bg-paper" disabled={draft.text.trim().length < 5}
-          onClick={() => { onAdd(draft.text.trim(), draft.color, pinned?.x ?? 40, pinned?.y ?? 30); setDraft(null) }}>Stick it</button>
+        <button type="button" className="btn btn-sm bg-paper disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none" disabled={!canStick}
+          title="Stick it (⌘ Enter)" onClick={stick}>Stick it</button>
       </div>
     </Sticky>
   )
@@ -167,7 +173,7 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
             </div>
           )
         })}
-        {draft && pinned && (
+        {draft && pinned && !hideDraft && (
           <div className="absolute z-40 cursor-grab touch-none active:cursor-grabbing" style={{ left: `${pinned.x}%`, top: `${pinned.y}%`, ...ON_CANVAS }}
             onPointerDown={(e) => down('draft', e, pinned.x, pinned.y)}>
             <AddPin />

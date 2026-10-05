@@ -10,8 +10,8 @@ const STACK: Crit[] = [
 ]
 
 const HOW = [
-  { t: 'Crit it', d: "Every day there's a new design from a 30-day UI challenge. Stick a note on what's off and why.", bg: 'bg-sun' },
-  { t: 'Remix it', d: 'Grab the Figma file or the code. Fix what the crits found, in your own tool.', bg: 'bg-mint' },
+  { t: 'Stick it', d: "Every day there's a new design from a 30-day UI challenge. Stick a note on what's off and why.", bg: 'bg-sun' },
+  { t: 'Remix it', d: 'Grab the Figma file or the code. Fix what the stickies found, in your own tool.', bg: 'bg-mint' },
   { t: 'Post it', d: 'Share your before/after on LinkedIn. Caption with credit is ready to copy.', bg: 'bg-pink' },
 ]
 
@@ -26,7 +26,7 @@ export default function Home() {
           <p className="max-w-[52ch] text-[18px]">A daily design gym for mid-level and senior product designers who are job-hunting. Sharpen your eye on a real design every day, with people who get it.</p>
         </div>
         <div className="grid justify-items-center gap-10">
-          <div className="relative h-[370px] w-[330px]" role="img" aria-label="Three example crit stickies stacked on top of each other">
+          <div className="relative h-[370px] w-[330px]" role="img" aria-label="Three example stickies stacked on top of each other">
             {STACK.map((c, i) => (
               <Sticky key={c.id} crit={c} i={i} big className="absolute min-h-[180px] w-[280px] content-between p-5 pt-6" style={{ left: [0, 48, 14][i], top: [0, 88, 176][i], zIndex: i + 1 }} />
             ))}
@@ -40,7 +40,7 @@ export default function Home() {
         <p className="font-pixel text-[12px]">WHY</p>
         <h2 id="why-h" className="text-4xl">The market only pays for top-level work. Getting there alone is hard.</h2>
         <p className="text-[17px]">Hundreds of applicants per role, design tests, ghosting. Practising on your own gives you reps, but nobody tells you what's off. And the search itself wears you down.</p>
-        <p className="text-[17px]">Make It Pop gives you a shared design to work on every day, honest crits from other designers, and a place to let off steam.</p>
+        <p className="text-[17px]">Make It Pop gives you a shared design to work on every day, honest stickies from other designers, and a place to let off steam.</p>
       </section>
 
       {/* What */}

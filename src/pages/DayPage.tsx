@@ -86,6 +86,7 @@ export default function DayPage() {
       crits={visibleCrits}
       wide={wide}
       hidden={hidden}
+      hideDraft={hiddenPref}
       adding={adding}
       setAdding={setAdding}
       positions={positions}
@@ -93,7 +94,7 @@ export default function DayPage() {
       onAgree={(id) => setAgrees((a) => ({ ...a, [id]: (a[id] ?? 0) + 1 }))}
       onAdd={(text, color, x, y) => {
         setMine((m) => [...m, { id: 'u' + Date.now(), name: profile?.name ?? 'You', level: profile?.level ?? 'Mid', tag: 'Other', text, agrees: 0, color, x, y }])
-        toast(locked ? `Stuck! ${othersCount} crits unlocked. Did they see what you saw?` : 'Stuck! Drag it to the right spot.')
+        toast(locked ? `Stuck! ${othersCount} stickies unlocked. Did they see what you saw?` : 'Stuck! Drag it to the right spot.')
       }}
     >
       <DesignPreview day={day} live={wide} />
@@ -123,7 +124,7 @@ export default function DayPage() {
   const commentsBlock = locked ? (
     <div className="grid justify-items-start gap-2 border-2 border-dashed border-ink/40 p-6">
       <h2 className="text-[24px]">Discussion</h2>
-      <p className="text-muted">{comments.length} comments, hidden until you add your crit. Audit first, so you see the design with fresh eyes.</p>
+      <p className="text-muted">{comments.length} comments, hidden until you add your sticky. Audit first, so you see the design with fresh eyes.</p>
     </div>
   ) : (
     <Comments
@@ -141,7 +142,7 @@ export default function DayPage() {
       <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-8 px-4 py-6">
         <div className="border-2 border-ink bg-cream p-5">{brief}</div>
         <section id="challenge-m" aria-label={`The challenge: Day ${n} design`} className="grid scroll-mt-20 gap-3">
-          <CritLock locked={locked} count={othersCount} hidden={hiddenPref} setHidden={setHidden} onAdd={() => setAdding(true)} />
+          <CritLock locked={locked} count={othersCount} hidden={hiddenPref} setHidden={setHidden} onAdd={() => setAdding(true)} hasDraft={adding} />
           {stickies}
         </section>
         <div className="border-2 border-ink bg-cream p-5">{remix}</div>
@@ -240,13 +241,14 @@ function LockIcon() {
   return <svg width="12" height="13" viewBox="0 0 12 14" aria-hidden="true"><rect x="1" y="6" width="10" height="7" fill="currentColor" /><path d="M3 6V4a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" strokeWidth="1.8" /></svg>
 }
 
-function CritLock({ locked, count, hidden, setHidden, onAdd }: { locked: boolean; count: number; hidden: boolean; setHidden: (v: boolean) => void; onAdd: () => void }) {
+function CritLock({ locked, count, hidden, setHidden, onAdd, hasDraft }: { locked: boolean; count: number; hidden: boolean; setHidden: (v: boolean) => void; onAdd: () => void; hasDraft: boolean }) {
   const toast = useToast()
   const toggle = () => {
-    if (locked) toast(`Nothing to hide yet: the ${count} crits stay hidden until you add yours.`)
+    // Only nothing-to-hide when the screen really is empty: no unlocked stickies and no sticky you're still writing
+    if (locked && !hasDraft) toast(`Nothing to hide yet: the ${count} stickies stay hidden until you add yours.`)
     setHidden(!hidden)
   }
-  // Shift+C toggles crits, so you can flip between "clean screen" and "what others saw" while zoomed in
+  // Shift+C toggles stickies, so you can flip between "clean screen" and "what others saw" while zoomed in
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
@@ -258,12 +260,12 @@ function CritLock({ locked, count, hidden, setHidden, onAdd }: { locked: boolean
   // Hide is always in the same place; the lock is a separate, clearly-labelled way to unlock (it starts a sticky).
   return (
     <>
-      <button type="button" aria-pressed={hidden} onClick={toggle} title="Show / hide all crits (Shift C)"
+      <button type="button" aria-pressed={hidden} onClick={toggle} title="Show / hide all stickies (Shift C)"
         className={'flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border-0 px-2.5 py-1.5 text-[13px] font-semibold ' + (hidden ? 'bg-[#3b6ef5] text-white' : 'bg-transparent text-[#2b2b2b] hover:bg-black/5')}>
-        <EyeIcon off={!hidden} />{hidden ? 'Show crits' : 'Hide crits'}
+        <EyeIcon off={!hidden} />{hidden ? 'Show stickies' : 'Hide stickies'}
       </button>
       {locked && (
-        <button type="button" onClick={onAdd} title="Crits stay hidden until you add your own, so they don't bias your audit"
+        <button type="button" onClick={onAdd} title="Other people's stickies stay hidden until you add your own, so they don't bias your audit"
           className="flex w-fit cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border-0 bg-transparent px-2.5 py-1.5 text-[13px] font-semibold text-[#5e5850] hover:bg-black/5">
           <LockIcon />Add yours to unlock {count}
         </button>
@@ -313,7 +315,7 @@ function CanvasBar({ day, view, setView, locked, count, hidden, setHidden, addin
         <button type="button" className={seg(adding)} aria-pressed={adding} onClick={() => { setHidden(false); setAdding(true) }}>
           <span className="grid h-4 w-4 place-items-center rounded-full rounded-tl-none border-[1.5px] border-current text-[12px] font-extrabold leading-none" aria-hidden="true">+</span>Add sticky
         </button>
-        <CritLock locked={locked} count={count} hidden={hidden} setHidden={setHidden} onAdd={() => setAdding(true)} />
+        <CritLock locked={locked} count={count} hidden={hidden} setHidden={setHidden} onAdd={() => setAdding(true)} hasDraft={adding} />
       </div>
       {!steamOpen && (
         <button type="button" className={seg(false)} onClick={() => setSteamOpen(true)}>Steam room</button>

@@ -83,7 +83,7 @@ export const DAYS: Day[] = PROMPTS.map((title, i) => {
     n,
     title,
     week: n <= 7 ? 0 : n <= 14 ? 1 : n <= 21 ? 2 : 3,
-    brief: BRIEFS[n] ?? 'Brief coming with the kit. Start from the prompt above and the top crits.',
+    brief: BRIEFS[n] ?? 'Brief coming with the kit. Start from the prompt above and the top stickies.',
     preview: PREVIEWS[n],
     live: LIVE[n],
     handoff: HANDOFFS[n],
