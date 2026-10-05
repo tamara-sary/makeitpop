@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { REPO, type Crit, type Day } from '../data/days'
 import { CopyButton, useToast } from './ui'
+import { DropShot } from './DropShot'
 
 // The remix flow, split the same way as the Figma Remix Kit (Original / Your remix / Share),
 // so what you see on the canvas is what you get in the file.
@@ -59,14 +60,8 @@ export function RemixSteps({ day, topCrit, locked }: { day: Day; topCrit?: Crit;
           </div>
         </li>
       </ol>
-      {/* Mirrors the empty "Your remix" frame in the Figma kit */}
-      <div className="grid aspect-[16/10] place-items-center border-2 border-dashed border-ink/40 bg-paper/60 p-6 text-center">
-        <div className="grid gap-1">
-          <span className="font-pixel text-[12px]">YOUR REMIX</span>
-          <p className="font-display text-[22px] font-extrabold">Your version goes here</p>
-          <p className="text-[14px] text-muted">Same frame in the Figma file. Build it there.</p>
-        </div>
-      </div>
+      {/* Mirrors the "Your remix" frame in the Figma kit: drop your finished shot here */}
+      <DropShot n={day.n} />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { DesignPreview } from '../components/DesignPreview'
 import { RemixSteps, ShareStep } from '../components/RemixKit'
@@ -9,6 +9,7 @@ import { Comments } from '../components/Comments'
 import { TitleBar, useToast } from '../components/ui'
 import { SAMPLE_COMMENTS, SAMPLE_CRITS, TODAY, WEEKS, dayByN, type Comment, type Crit, type Day } from '../data/days'
 import { useStored } from '../lib/store'
+import { useProfile } from '../lib/profile'
 
 const DESIGN_W = 1392 // Day 1 export width; the original section is sized to show it at 100%
 const STEAM_CARD = { w: 300, h: 92 } // minimised steam room card, pinned bottom-right of the canvas
@@ -21,6 +22,7 @@ export default function DayPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const [hiddenPref, setHidden] = useState(false)
+  const [profile] = useProfile()
   const [adding, setAdding] = useState(false)
 
   const [mine, setMine] = useStored<Crit[]>(`crits:${n}`, [])
@@ -54,7 +56,7 @@ export default function DayPage() {
 
   if (!day || n > TODAY) return <Navigate to="/archive" replace />
   const isToday = n === TODAY
-  const me = (text: string): Comment => ({ id: 'u' + Date.now(), name: 'You', level: 'Mid', text, at: Date.now(), likes: 0, replies: [] })
+  const me = (text: string): Comment => ({ id: 'u' + Date.now(), name: profile?.name ?? 'You', level: profile?.level ?? 'Mid', text, at: Date.now(), likes: 0, replies: [] })
   const setView = (v: View) => {
     if (v !== 'brief') setBriefSeen(true)
     setFocus((f) => ({ view: v, n: f.n + 1 }))
@@ -71,7 +73,7 @@ export default function DayPage() {
       onMove={(id, x, y) => setPositions((p) => ({ ...p, [id]: { x, y } }))}
       onAgree={(id) => setAgrees((a) => ({ ...a, [id]: (a[id] ?? 0) + 1 }))}
       onAdd={(text, color, x, y) => {
-        setMine((m) => [...m, { id: 'u' + Date.now(), name: 'You', level: 'Mid', tag: 'Other', text, agrees: 0, color, x, y }])
+        setMine((m) => [...m, { id: 'u' + Date.now(), name: profile?.name ?? 'You', level: profile?.level ?? 'Mid', tag: 'Other', text, agrees: 0, color, x, y }])
         toast(locked ? `Stuck! ${othersCount} crits unlocked. Did they see what you saw?` : 'Stuck! Drag it to the right spot.')
       }}
     >
@@ -220,6 +222,16 @@ function LockIcon() {
 }
 
 function CritLock({ locked, count, hidden, setHidden, onAdd }: { locked: boolean; count: number; hidden: boolean; setHidden: (v: boolean) => void; onAdd: () => void }) {
+  // Shift+C toggles crits, so you can flip between "clean screen" and "what others saw" while zoomed in
+  useEffect(() => {
+    if (locked) return
+    const k = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement
+      if (e.shiftKey && e.code === 'KeyC' && !/^(INPUT|TEXTAREA)$/.test(t.tagName)) { e.preventDefault(); setHidden(!hidden) }
+    }
+    window.addEventListener('keydown', k)
+    return () => window.removeEventListener('keydown', k)
+  })
   if (locked) {
     return (
       <button type="button" onClick={onAdd} className="flex w-fit cursor-pointer items-center gap-1.5 rounded-md border-0 bg-transparent px-2.5 py-1.5 text-[13px] font-semibold text-[#5e5850] hover:bg-black/5">
@@ -228,10 +240,19 @@ function CritLock({ locked, count, hidden, setHidden, onAdd }: { locked: boolean
     )
   }
   return (
-    <button type="button" aria-pressed={hidden} onClick={() => setHidden(!hidden)}
-      className="cursor-pointer rounded-md border-0 bg-transparent px-2.5 py-1.5 text-[13px] font-semibold text-[#2b2b2b] hover:bg-black/5">
-      {hidden ? 'Show crits' : 'Hide crits'}
+    <button type="button" aria-pressed={hidden} onClick={() => setHidden(!hidden)} title="Show / hide all crits (Shift C)"
+      className={'flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border-0 px-2.5 py-1.5 text-[13px] font-semibold ' + (hidden ? 'bg-[#3b6ef5] text-white' : 'bg-transparent text-[#2b2b2b] hover:bg-black/5')}>
+      <EyeIcon off={!hidden} />{hidden ? 'Show crits' : 'Hide crits'}
     </button>
+  )
+}
+
+function EyeIcon({ off }: { off: boolean }) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <path d="M1 8s2.6-5 7-5 7 5 7 5-2.6 5-7 5-7-5-7-5z" /><circle cx="8" cy="8" r="2.2" />
+      {off && <path d="M2 14L14 2" />}
+    </svg>
   )
 }
 

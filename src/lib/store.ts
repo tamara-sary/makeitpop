@@ -10,11 +10,16 @@ export function load<T>(key: string, fallback: T): T {
   }
 }
 
-export function save<T>(key: string, value: T) {
+// Returns false when the browser refuses (blocked storage or quota full, e.g. a big image).
+export function save<T>(key: string, value: T): boolean {
   try {
-    localStorage.setItem('mip:' + key, JSON.stringify(value))
+    const raw = JSON.stringify(value)
+    if (localStorage.getItem('mip:' + key) === raw) return true
+    localStorage.setItem('mip:' + key, raw)
+    window.dispatchEvent(new CustomEvent('mip-store', { detail: key })) // keeps other components on the same key in sync
+    return true
   } catch {
-    /* storage blocked: keep working in memory */
+    return false /* storage blocked: keep working in memory */
   }
 }
 
@@ -24,6 +29,16 @@ export function useStored<T>(key: string, fallback: T) {
   const current = state.key === key ? state.value : load(key, fallback)
   if (state.key !== key) setState({ key, value: current })
   useEffect(() => { if (state.key === key) save(key, state.value) }, [key, state])
+  // Another component (e.g. the menu bar) changed this key: pick it up
+  useEffect(() => {
+    const on = (e: Event) => {
+      if ((e as CustomEvent).detail !== key) return
+      const v = load(key, fallback)
+      setState((s) => (JSON.stringify(s.value) === JSON.stringify(v) ? s : { key, value: v }))
+    }
+    window.addEventListener('mip-store', on)
+    return () => window.removeEventListener('mip-store', on)
+  }, [key]) // eslint-disable-line react-hooks/exhaustive-deps
   const setValue = useCallback(
     (v: T | ((prev: T) => T)) =>
       setState((s) => ({ key: s.key, value: typeof v === 'function' ? (v as (p: T) => T)(s.value) : v })),

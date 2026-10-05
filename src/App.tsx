@@ -5,6 +5,7 @@ import DayPage from './pages/DayPage'
 import Archive from './pages/Archive'
 import SteamRoom from './pages/SteamRoom'
 import Home from './pages/Home'
+import Profile from './pages/Profile'
 
 function ScrollTop() {
   const { pathname } = useLocation()
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/day/:n" element={<DayPage />} />
             <Route path="/archive" element={<Archive />} />
             <Route path="/steam-room" element={<SteamRoom />} />
+            <Route path="/me" element={<Profile />} />
             <Route path="/how-it-works" element={<Navigate to="/" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

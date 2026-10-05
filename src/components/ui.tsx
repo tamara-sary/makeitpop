@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useState, type HTMLAttributes, 
 import { NavLink, Link } from 'react-router-dom'
 import { TODAY } from '../data/days'
 import { copyText } from '../lib/store'
+import { useProfile } from '../lib/profile'
 
 export function Logo({ size = 34 }: { size?: number }) {
   return (
@@ -13,6 +14,7 @@ export function Logo({ size = 34 }: { size?: number }) {
 }
 
 export function MenuBar() {
+  const [profile] = useProfile()
   const link = ({ isActive }: { isActive: boolean }) =>
     'px-2 py-1 no-underline ' + (isActive ? 'bg-ink text-cream' : 'text-ink hover:bg-sun')
   return (
@@ -23,6 +25,7 @@ export function MenuBar() {
         <NavLink to="/archive" className={link}>Archive</NavLink>
         <NavLink to="/steam-room" className={link}>Steam room</NavLink>
         <span className="ml-auto font-pixel text-[12px]">DAY {String(TODAY).padStart(2, '0')} / 30</span>
+        <NavLink to="/me" className={link}>{profile ? profile.name : 'Join'}</NavLink>
       </nav>
     </header>
   )
