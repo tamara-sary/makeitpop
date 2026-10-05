@@ -37,6 +37,15 @@ export default function DayPage() {
   const [focus, setFocus] = useState<Focus>({ view: briefSeen ? 'original' : 'brief', n: 0 })
   const view = focus.view
   const [steamOpen, setSteamOpen] = useStored<boolean>('steam-open', true)
+  // Discussion = a side panel over the canvas, closed by default. It used to sit below the canvas,
+  // but the canvas takes the scroll wheel (Figma behaviour), so once you were down there you couldn't get back.
+  const [talkOpen, setTalkOpen] = useState(false)
+  useEffect(() => {
+    if (!talkOpen) return
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') setTalkOpen(false) }
+    window.addEventListener('keydown', k)
+    return () => window.removeEventListener('keydown', k)
+  }, [talkOpen])
   // Steam room card floats over the canvas: drag it by its title bar, it remembers where you left it.
   // Stored as distance from the bottom-right corner, so it stays put when the window resizes.
   const [steamPos, setSteamPos] = useStored<{ r: number; b: number } | null>('steam-pos', null)
@@ -174,12 +183,21 @@ export default function DayPage() {
       <section id="challenge" aria-label={`The challenge: Day ${n} design`}
         className="flex h-[calc(100dvh-49px)] min-h-[560px] min-w-0 flex-col border-b border-[#e4ded4] bg-[#f3eee6]">
         <CanvasBar day={day} view={view} setView={setView} locked={locked} count={othersCount} hidden={hiddenPref} setHidden={setHidden}
-          adding={adding} setAdding={(v) => { if (v && view !== 'original') setView('original'); setAdding(v) }} steamOpen={steamOpen} setSteamOpen={setSteamOpen} />
-        <Canvas focus={focus} onFocus={setView} sections={sections} avoid={steamOpen && !steamPos ? STEAM_CARD : undefined}>
-          {steamOpen && <div className="absolute z-30" style={{ right: steamPos?.r ?? 16, bottom: steamPos?.b ?? 16 }}>{steam}</div>}
-        </Canvas>
+          adding={adding} setAdding={(v) => { if (v && view !== 'original') setView('original'); setAdding(v) }} steamOpen={steamOpen} setSteamOpen={setSteamOpen}
+          talkOpen={talkOpen} setTalkOpen={setTalkOpen} talkCount={comments.length} />
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          <Canvas focus={focus} onFocus={setView} sections={sections} avoid={steamOpen && !steamPos ? STEAM_CARD : undefined}>
+            {steamOpen && <div className="absolute z-30" style={{ right: steamPos?.r ?? 16, bottom: steamPos?.b ?? 16 }}>{steam}</div>}
+          </Canvas>
+          {/* Outside the canvas element, so the panel scrolls normally instead of panning the canvas */}
+          {talkOpen && (
+            <aside id="discussion" aria-label="Discussion" className="win absolute inset-y-3 right-3 z-40 flex w-[min(460px,calc(100%-24px))] flex-col">
+              <TitleBar title="discussion" onClose={() => setTalkOpen(false)} />
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5">{commentsBlock}</div>
+            </aside>
+          )}
+        </div>
       </section>
-      <div id="discussion" className="mx-auto w-full max-w-7xl scroll-mt-16 px-4">{commentsBlock}</div>
     </div>
   )
 
@@ -293,9 +311,10 @@ const SECTION_TABS: { id: View; label: string }[] = [
   { id: 'all', label: 'Fit all' },
 ]
 
-function CanvasBar({ day, view, setView, locked, count, hidden, setHidden, adding, setAdding, steamOpen, setSteamOpen }: {
+function CanvasBar({ day, view, setView, locked, count, hidden, setHidden, adding, setAdding, steamOpen, setSteamOpen, talkOpen, setTalkOpen, talkCount }: {
   day: Day; view: View; setView: (v: View) => void; locked: boolean; count: number; hidden: boolean; setHidden: (v: boolean) => void
   adding: boolean; setAdding: (v: boolean) => void; steamOpen: boolean; setSteamOpen: (v: boolean) => void
+  talkOpen: boolean; setTalkOpen: (v: boolean) => void; talkCount: number
 }) {
   const seg = (on: boolean) =>
     'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-semibold cursor-pointer border-0 whitespace-nowrap ' + (on ? 'bg-[#3b6ef5] text-white' : 'bg-transparent text-[#2b2b2b] hover:bg-black/5')
@@ -320,8 +339,9 @@ function CanvasBar({ day, view, setView, locked, count, hidden, setHidden, addin
       {!steamOpen && (
         <button type="button" className={seg(false)} onClick={() => setSteamOpen(true)}>Steam room</button>
       )}
-      {/* Scrolling over the canvas pans it (Figma behaviour), so the discussion below needs its own way in */}
-      <button type="button" className={seg(false)} onClick={() => document.getElementById('discussion')?.scrollIntoView({ behavior: 'smooth' })}>Discussion ↓</button>
+      <button type="button" className={seg(talkOpen)} aria-pressed={talkOpen} aria-controls="discussion" onClick={() => setTalkOpen(!talkOpen)}>
+        Discussion · {talkCount}
+      </button>
     </div>
   )
 }
