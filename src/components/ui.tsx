@@ -4,9 +4,9 @@ import { TODAY } from '../data/days'
 import { copyText } from '../lib/store'
 import { useProfile } from '../lib/profile'
 
-export function Logo({ size = 34 }: { size?: number }) {
+export function Logo({ size = 34 }: { size?: number | string }) {
   return (
-    <Link to="/" className="inline-flex items-center gap-[0.14em] font-display font-extrabold tracking-[-0.035em] no-underline text-ink" style={{ fontSize: size, lineHeight: 1 }} aria-label="Make It Pop, home">
+    <Link to="/" className="inline-flex items-center gap-[0.14em] whitespace-nowrap font-display font-extrabold tracking-[-0.035em] no-underline text-ink" style={{ fontSize: size, lineHeight: 1 }} aria-label="Make It Pop, home">
       <span>Make it</span>
       <span className="pop-sticker">pop</span>
     </Link>
