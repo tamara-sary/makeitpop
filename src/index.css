@@ -182,9 +182,26 @@ p { margin: 0; }
   50%, 100% { translate: 0 0 }
 }
 
+/* Surprised mouth: sits on the drawn mouth (44% across, 64% down), invisible until a jump, then opens into an "O".
+   Same 2.4s clock as the jump: big "O" on the big jump, small "o" on the small one. */
+.apple-mouth { position: absolute; left: 44.1%; top: 63.7%; width: 6.4%; height: 9.6%; translate: -50% -50%;
+               border-radius: 50%; background: #56643d; opacity: 0; animation: apple-mouth 2.4s infinite; }
+@keyframes apple-mouth {
+  0%, 3% { opacity: 0; scale: 1 1 }
+  7% { opacity: 1; scale: 1 1 }
+  15% { scale: 1.7 1.32 }
+  22% { scale: 1.6 1.28 }
+  28% { scale: 1 1; opacity: 1 }
+  31% { opacity: 0 }
+  33% { opacity: 1; scale: 1 1 }
+  40% { scale: 1.38 1.16 }
+  47% { scale: 1 1; opacity: 1 }
+  50%, 100% { opacity: 0; scale: 1 1 }
+}
+
 /* Motion off for people who ask for it: everything shows in its final state */
 @media (prefers-reduced-motion: reduce) {
-  .pop-anim .pop-sticker, .apple-hop, .cta-wiggle { animation: none !important }
+  .pop-anim .pop-sticker, .apple-hop, .cta-wiggle, .apple-mouth { animation: none !important }
   .pop-burst { display: none }
   .cta-scribble path { animation: none !important; stroke-dashoffset: 0 }
 }

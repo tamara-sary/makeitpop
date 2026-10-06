@@ -91,7 +91,12 @@ export default function Home() {
           <p className="text-[17px]">Hundreds of applicants per role, design tests, ghosting. Practising on your own gives you reps, but nobody tells you what's off. And the search itself wears you down.</p>
           <p className="text-[17px]">Make It Pop gives you a shared design to work on every day, honest stickies from other designers, and a place to let off steam.</p>
         </div>
-        <img src="/brand/apple.webp" alt="" width={613} height={720} className="apple-hop mx-auto w-[min(260px,60vw)] -rotate-3 md:w-[300px]" draggable={false} />
+        {/* The apple jumps; at the top of each jump its mouth opens into a surprised "O".
+            The mouth is an oval laid exactly over the drawn one (same colour), so it can grow without editing the image. */}
+        <div className="apple-hop relative mx-auto w-[min(260px,60vw)] -rotate-3 md:w-[300px]">
+          <img src="/brand/apple.webp" alt="" width={613} height={720} className="block w-full" draggable={false} />
+          <span className="apple-mouth" aria-hidden="true" />
+        </div>
       </section>
 
       {/* What */}
