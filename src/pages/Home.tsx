@@ -65,10 +65,18 @@ export default function Home() {
       {/* Hero */}
       <section className="grid items-center gap-12 pt-4 lg:grid-cols-[1fr_1.1fr]">
         <div className="grid justify-items-start gap-5">
-          <Logo size="clamp(48px, 13vw, 72px)" />
+          <Logo size="clamp(48px, 13vw, 72px)" animated />
           <p className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">Critique it. Remix it. Make it pop.</p>
           <p className="max-w-[52ch] text-[18px]">A daily design gym for mid-level and senior product designers who are job-hunting. Sharpen your eye on a real design every day, with people who get it.</p>
-          <Link to="/today" className="btn mt-2 px-7 py-4 text-lg">Give it a try →</Link>
+          {/* Hand-drawn marker loop around the CTA, drawn on after the logo pops (like circling it on a printout) */}
+          <span className="cta-scribble mt-4 ml-2">
+            <svg viewBox="0 0 400 200" preserveAspectRatio="none" aria-hidden="true">
+              {/* two loose, uneven loops + a flick at the end, like a marker circling it twice */}
+              <path pathLength={1} d="M330 40 C 250 8, 92 16, 46 52 C 6 84, 22 158, 150 170 C 282 182, 390 150, 376 98 C 366 50, 286 30, 186 36 C 98 42, 26 66, 34 104 C 42 140, 120 164, 254 174 C 290 177, 318 182, 342 194"
+                fill="none" stroke="#161616" strokeWidth="5" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <Link to="/today" className="btn cta-wiggle px-7 py-4 text-lg">Give it a try <span className="arrow" aria-hidden="true">→</span></Link>
+          </span>
         </div>
         <div className="grid justify-items-center">
           <StickyFan />
@@ -83,7 +91,7 @@ export default function Home() {
           <p className="text-[17px]">Hundreds of applicants per role, design tests, ghosting. Practising on your own gives you reps, but nobody tells you what's off. And the search itself wears you down.</p>
           <p className="text-[17px]">Make It Pop gives you a shared design to work on every day, honest stickies from other designers, and a place to let off steam.</p>
         </div>
-        <img src="/brand/apple.webp" alt="" width={613} height={720} className="mx-auto w-[min(260px,60vw)] -rotate-3 md:w-[300px]" draggable={false} />
+        <img src="/brand/apple.webp" alt="" width={613} height={720} className="apple-hop mx-auto w-[min(260px,60vw)] -rotate-3 md:w-[300px]" draggable={false} />
       </section>
 
       {/* What */}
@@ -116,7 +124,7 @@ export default function Home() {
 
       <section className="grid justify-items-start gap-4">
         <h2 className="text-4xl">Today's design is waiting.</h2>
-        <Link to="/today" className="btn px-7 py-4 text-lg">Give it a try →</Link>
+        <Link to="/today" className="btn px-7 py-4 text-lg">Give it a try <span className="arrow" aria-hidden="true">→</span></Link>
       </section>
     </div>
   )

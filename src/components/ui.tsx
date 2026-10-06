@@ -4,11 +4,19 @@ import { TODAY } from '../data/days'
 import { copyText } from '../lib/store'
 import { useProfile } from '../lib/profile'
 
-export function Logo({ size = 34 }: { size?: number | string }) {
+// `animated` (landing hero only): the "pop" sticker springs in with comic burst lines, then hops now and then.
+export function Logo({ size = 34, animated = false }: { size?: number | string; animated?: boolean }) {
   return (
-    <Link to="/" className="inline-flex items-center gap-[0.14em] whitespace-nowrap font-display font-extrabold tracking-[-0.035em] no-underline text-ink" style={{ fontSize: size, lineHeight: 1 }} aria-label="Make It Pop, home">
+    <Link to="/" className={'inline-flex items-center gap-[0.14em] whitespace-nowrap font-display font-extrabold tracking-[-0.035em] no-underline text-ink' + (animated ? ' pop-anim' : '')} style={{ fontSize: size, lineHeight: 1 }} aria-label="Make It Pop, home">
       <span>Make it</span>
-      <span className="pop-sticker">pop</span>
+      <span className="pop-sticker">
+        pop
+        {animated && (
+          <svg className="pop-burst" viewBox="0 0 40 40" aria-hidden="true">
+            <path d="M8 30 L2 38 M20 22 L20 4 M28 26 L38 16 M30 34 L40 34" stroke="#161616" strokeWidth="4" strokeLinecap="round" fill="none" />
+          </svg>
+        )}
+      </span>
     </Link>
   )
 }
