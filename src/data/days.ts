@@ -58,6 +58,8 @@ const PROMPTS = [
 
 const PREVIEWS: Record<number, string> = { 1: '/days/day-01.png' }
 const LIVE: Record<number, string> = { 1: '/days/day-01/index.html' }
+// Figma file per day. A plain share link opens the original view-only, so the site tells people to duplicate it.
+const FIGMA: Record<number, string> = { 1: 'https://www.figma.com/design/O4t2kwBjh36SgEQf11jK1y/Make-It-Pop' }
 
 const HANDOFFS: Record<number, Handoff> = {
   1: {
@@ -86,6 +88,7 @@ export const DAYS: Day[] = PROMPTS.map((title, i) => {
     brief: BRIEFS[n] ?? 'Brief coming with the kit. Start from the prompt above and the top stickies.',
     preview: PREVIEWS[n],
     live: LIVE[n],
+    figmaUrl: FIGMA[n],
     handoff: HANDOFFS[n],
   }
 })
