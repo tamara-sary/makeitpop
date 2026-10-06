@@ -171,18 +171,15 @@ p { margin: 0; }
 .btn .arrow { display: inline-block; transition: translate .2s ease }
 .btn:hover .arrow { translate: 4px 0 }
 
-/* Apple: tiny happy hops (two jumps, a breath, repeat), squashing on landing, pivoting from its feet */
-.apple-hop { transform-origin: 50% 100%; animation: apple-hop 2.6s ease-in-out infinite; }
+/* Apple: two happy jumps then a breath, on a loop. Pure up/down (no squash, it keeps its shape):
+   fast off the ground, slows at the top, speeds back down, like real gravity. */
+.apple-hop { animation: apple-hop 2.4s infinite; }
 @keyframes apple-hop {
-  0% { translate: 0 0; scale: 1 1 }
-  6% { translate: 0 0; scale: 1.05 0.93 }
-  15% { translate: 0 -20px; scale: 0.96 1.05 }
-  24% { translate: 0 0; scale: 1.07 0.91 }
-  30% { translate: 0 0; scale: 1 1 }
-  36% { translate: 0 0; scale: 1.04 0.95 }
-  44% { translate: 0 -13px; scale: 0.97 1.04 }
-  52% { translate: 0 0; scale: 1.05 0.93 }
-  58%, 100% { translate: 0 0; scale: 1 1 }
+  0% { translate: 0 0; animation-timing-function: cubic-bezier(.2, .7, .4, 1) }
+  14% { translate: 0 -34px; animation-timing-function: cubic-bezier(.6, 0, .8, .3) }
+  28% { translate: 0 0; animation-timing-function: cubic-bezier(.2, .7, .4, 1) }
+  39% { translate: 0 -20px; animation-timing-function: cubic-bezier(.6, 0, .8, .3) }
+  50%, 100% { translate: 0 0 }
 }
 
 /* Motion off for people who ask for it: everything shows in its final state */

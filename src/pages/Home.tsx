@@ -73,7 +73,7 @@ export default function Home() {
             <svg viewBox="0 0 400 200" preserveAspectRatio="none" aria-hidden="true">
               {/* two loose, uneven loops + a flick at the end, like a marker circling it twice */}
               <path pathLength={1} d="M330 40 C 250 8, 92 16, 46 52 C 6 84, 22 158, 150 170 C 282 182, 390 150, 376 98 C 366 50, 286 30, 186 36 C 98 42, 26 66, 34 104 C 42 140, 120 164, 254 174 C 290 177, 318 182, 342 194"
-                fill="none" stroke="#161616" strokeWidth="5" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+                fill="none" stroke="#56633c" strokeWidth="5" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <Link to="/today" className="btn cta-wiggle px-7 py-4 text-lg">Give it a try <span className="arrow" aria-hidden="true">→</span></Link>
           </span>
