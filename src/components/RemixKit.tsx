@@ -30,12 +30,16 @@ export function RemixSteps({ day, topCrit, locked }: { day: Day; topCrit?: Crit;
             <strong>Grab the design</strong>
             <div className="flex flex-wrap gap-2">
               {day.figmaUrl ? (
-                <a className="btn btn-sm" href={day.figmaUrl} target="_blank" rel="noreferrer">Figma file ↗</a>
+                <a className="btn btn-sm" href={day.figmaUrl} target="_blank" rel="noreferrer" aria-describedby="figma-dup">Get your copy ↗</a>
               ) : (
-                <button className="btn btn-sm" type="button" onClick={() => toast(`Day ${day.n} Figma file is coming soon`)}>Figma file ↗</button>
+                <button className="btn btn-sm" type="button" aria-describedby="figma-dup" onClick={() => toast(`Day ${day.n} Figma file is coming soon`)}>Get your copy ↗</button>
               )}
               <button className="btn btn-ghost btn-sm" type="button" aria-expanded={showCode} onClick={() => setShowCode((v) => !v)}>Code</button>
             </div>
+            {/* A shared Figma link opens the original, view-only: people must duplicate it before they can edit */}
+            <p id="figma-dup" className="text-[14px] leading-snug">
+              <strong>In Figma: duplicate first.</strong> Click the file name at the top → <strong>Duplicate to your drafts</strong>, then edit your copy. The original stays view-only.
+            </p>
             {showCode && (
               <div className="grid gap-2">
                 <p className="text-[14px]">Run this, then open the folder in Claude Code or Cursor. The brief and stickies are already inside.</p>
