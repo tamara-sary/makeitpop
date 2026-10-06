@@ -205,3 +205,11 @@ p { margin: 0; }
   .pop-burst { display: none }
   .cta-scribble path { animation: none !important; stroke-dashoffset: 0 }
 }
+
+/* landing: tab image fades in on switch; tool stickers drift; hide the days row scrollbar */
+.tab-in { animation: tab-in .35s ease-out }
+@keyframes tab-in { from { opacity: 0; translate: 0 8px } to { opacity: 1; translate: 0 0 } }
+@media (min-width: 768px) { .tool-float { animation: tool-float 6s ease-in-out infinite } }
+@keyframes tool-float { 0%, 100% { translate: 0 0 } 50% { translate: 0 -10px } }
+.no-scrollbar { scrollbar-width: none } .no-scrollbar::-webkit-scrollbar { display: none }
+@media (prefers-reduced-motion: reduce) { .tab-in, .tool-float { animation: none !important } }
