@@ -3,11 +3,13 @@ import { NavLink, Link } from 'react-router-dom'
 import { TODAY } from '../data/days'
 import { copyText } from '../lib/store'
 import { useProfile } from '../lib/profile'
+import { useStored } from '../lib/store'
+import { setSoundOn } from '../lib/sound'
 
 // `animated` (landing hero only): the "pop" sticker springs in with comic burst lines, then hops now and then.
 export function Logo({ size = 34, animated = false }: { size?: number | string; animated?: boolean }) {
   return (
-    <Link to="/" className={'inline-flex items-center gap-[0.14em] whitespace-nowrap font-display font-extrabold tracking-[-0.035em] no-underline text-ink' + (animated ? ' pop-anim' : '')} style={{ fontSize: size, lineHeight: 1 }} aria-label="Make It Pop, home">
+    <Link to="/" className={'inline-flex items-center gap-[0.14em] whitespace-nowrap font-display font-extrabold tracking-[-0.035em] no-underline text-ink' + (animated ? ' pop-anim' : '')} style={{ fontSize: size, lineHeight: 1 }} aria-label="Make It Pop, home" data-sound="pop">
       <span>Make it</span>
       <span className="pop-sticker">
         pop
@@ -33,9 +35,25 @@ export function MenuBar() {
         <NavLink to="/archive" className={link}>Archive</NavLink>
         <NavLink to="/steam-room" className={link}>Steam room</NavLink>
         <span className="ml-auto font-pixel text-[12px]">DAY {String(TODAY).padStart(2, '0')} / 30</span>
+        <SoundToggle />
         <NavLink to="/me" className={link}>{profile ? profile.name : 'Join'}</NavLink>
       </nav>
     </header>
+  )
+}
+
+// Sound on/off, remembered per browser. Uses the same stored key as lib/sound.
+function SoundToggle() {
+  const [on, setOn] = useStored<boolean>('sound-on', true)
+  return (
+    <button type="button" data-sound="none" aria-pressed={on} aria-label={on ? 'Sound on. Turn sound off' : 'Sound off. Turn sound on'} title={on ? 'Sound on' : 'Sound off'}
+      onClick={() => { setOn(!on); setSoundOn(!on) }}
+      className="grid h-8 w-8 cursor-pointer place-items-center border-0 bg-transparent text-ink hover:bg-sun">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" />
+        {on ? <><path d="M16.5 8.5a5 5 0 0 1 0 7" /><path d="M19 6a8.5 8.5 0 0 1 0 12" /></> : <path d="M17 9l5 6M22 9l-5 6" />}
+      </svg>
+    </button>
   )
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as RPointerEvent, type ReactNode } from 'react'
 import type { Crit, StickyColor } from '../data/days'
+import { play } from '../lib/sound'
 
 // Crit stickies pinned on the challenge screen. Drag to move, +1 to agree.
 // Our own sticky style (ink border, tape strip, hard shadow, tilt): a sticky note is a generic
@@ -68,7 +69,7 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
   children: ReactNode // the challenge screen
 }) {
   const board = useRef<HTMLDivElement>(null)
-  const drag = useRef<{ id: string; sx: number; sy: number; ox: number; oy: number } | null>(null)
+  const drag = useRef<{ id: string; sx: number; sy: number; ox: number; oy: number; moved?: boolean } | null>(null)
   const [draftState, setDraftState] = useState<{ color: StickyColor; text: string }>({ color: 'sun', text: '' })
   // Adding on the canvas = two steps: a pin follows the mouse (ghost), click pins it, then you type.
   const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null)
@@ -101,6 +102,7 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
   const move = (e: RPointerEvent<HTMLDivElement>) => {
     if (placing && board.current) { setGhost(pct(e)); return }
     if (!drag.current || !board.current) return
+    drag.current.moved = true
     const r = board.current.getBoundingClientRect()
     const nx = drag.current.ox + ((e.clientX - drag.current.sx) / r.width) * 100
     const ny = drag.current.oy + ((e.clientY - drag.current.sy) / r.height) * 100
@@ -109,11 +111,11 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
     if (drag.current.id === 'draft') setPinned({ x, y }) // your own sticky moves while you're still writing it
     else onMove(drag.current.id, x, y)
   }
-  const up = () => { drag.current = null }
+  const up = () => { if (drag.current?.moved && drag.current.id !== 'draft') play('drop'); drag.current = null }
 
   // Any text counts: a 4-letter note like "test" or "why?" is a real sticky too
   const canStick = !!draft && draft.text.trim().length > 0
-  const stick = () => { if (draft && canStick) { onAdd(draft.text.trim(), draft.color, pinned?.x ?? 40, pinned?.y ?? 30); setDraft(null) } }
+  const stick = (viaKey = false) => { if (draft && canStick) { if (viaKey) play('stick'); onAdd(draft.text.trim(), draft.color, pinned?.x ?? 40, pinned?.y ?? 30); setDraft(null) } }
 
   const draftNote = draft && (
     <Sticky crit={{ id: 'draft', name: 'You', level: 'Mid', tag: '', text: '', agrees: 0, color: draft.color }} i={0}>
@@ -128,11 +130,11 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
       </div>
       <textarea id="sticky-draft" autoFocus className="min-h-20 w-full resize-none border-0 bg-transparent text-[14px] font-medium outline-none placeholder:text-ink/60"
         placeholder="What's off here, and why?" value={draft.text} onChange={(e) => setDraft({ ...draft, text: e.target.value })}
-        onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); stick() } }} />
+        onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); stick(true) } }} />
       <div className="flex gap-2">
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => setDraft(null)}>Cancel</button>
         <button type="button" className="btn btn-sm bg-paper disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none" disabled={!canStick}
-          title="Stick it (⌘ Enter)" onClick={stick}>Stick it</button>
+          title="Stick it (⌘ Enter)" data-sound="stick" onClick={() => stick()}>Stick it</button>
       </div>
     </Sticky>
   )
@@ -157,7 +159,7 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
         onPointerDown={(e) => {
           if (!placing || e.button !== 0) return
           // preventDefault stops the click's own focus change, which would steal focus from the new sticky's text box
-          e.preventDefault(); e.stopPropagation(); setPinned(pct(e))
+          e.preventDefault(); e.stopPropagation(); setPinned(pct(e)); play('pop')
           requestAnimationFrame(() => document.getElementById('sticky-draft')?.focus())
         }}
         style={{ cursor: placing ? 'none' : undefined }}>

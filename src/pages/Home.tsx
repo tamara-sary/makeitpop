@@ -1,6 +1,7 @@
 import { useRef, useState, type KeyboardEvent, type PointerEvent as RPointerEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Logo } from '../components/ui'
+import { play } from '../lib/sound'
 import { Sticky } from '../components/Stickies'
 import { DAYS, TODAY, WEEKS, type Crit } from '../data/days'
 
@@ -22,6 +23,7 @@ function FunSticky({ crit, left, top, tilt, z, onGrab, front }: (typeof STACK)[n
     start.current = { sx: e.clientX, sy: e.clientY, ox: off.x, oy: off.y, minX: off.x - r.left + 4, maxX: off.x + (window.innerWidth - r.right) - 4 }
     setDragging(true)
     onGrab()
+    play('pop')
     e.currentTarget.setPointerCapture(e.pointerId)
   }
   const move = (e: RPointerEvent<HTMLDivElement>) => {
@@ -29,7 +31,11 @@ function FunSticky({ crit, left, top, tilt, z, onGrab, front }: (typeof STACK)[n
     if (!s) return
     setOff({ x: Math.min(Math.max(s.ox + e.clientX - s.sx, s.minX), s.maxX), y: s.oy + e.clientY - s.sy })
   }
-  const up = () => { start.current = null; setDragging(false) }
+  const up = () => {
+    // a little "drop" when you let go of a sticky you actually moved
+    if (start.current && (Math.abs(off.x - start.current.ox) > 4 || Math.abs(off.y - start.current.oy) > 4)) play('drop')
+    start.current = null; setDragging(false)
+  }
   return (
     <div className="absolute w-[42%] cursor-grab touch-none select-none active:cursor-grabbing" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}
       style={{ left, top, zIndex: front || z, transform: `translate(${off.x}px, ${off.y}px)` }}>

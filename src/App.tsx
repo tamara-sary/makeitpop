@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useEffect, type ReactNode } from 'react'
 import { MenuBar, PrototypeNote, ToastProvider } from './components/ui'
+import { installClickSounds } from './lib/sound'
 import DayPage from './pages/DayPage'
 import Archive from './pages/Archive'
 import SteamRoom from './pages/SteamRoom'
@@ -21,6 +22,7 @@ function Main({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
+  useEffect(() => installClickSounds(), [])
   return (
     <BrowserRouter>
       <ToastProvider>
