@@ -15,7 +15,7 @@ export type SoundName = keyof typeof SOUNDS
 let ctx: AudioContext | null = null
 const KEY = 'sound-on'
 
-export const soundOn = () => load<boolean>(KEY, true)
+export const soundOn = () => load<boolean>(KEY, false) // off until the visitor turns it on
 export function setSoundOn(on: boolean) {
   save(KEY, on)
   if (on) play('pop') // confirm with a pop when turning sound on

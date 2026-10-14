@@ -44,7 +44,7 @@ export function MenuBar() {
 
 // Sound on/off, remembered per browser. Uses the same stored key as lib/sound.
 function SoundToggle() {
-  const [on, setOn] = useStored<boolean>('sound-on', true)
+  const [on, setOn] = useStored<boolean>('sound-on', false)
   return (
     <button type="button" data-sound="none" aria-pressed={on} aria-label={on ? 'Sound on. Turn sound off' : 'Sound off. Turn sound on'} title={on ? 'Sound on' : 'Sound off'}
       onClick={() => { setOn(!on); setSoundOn(!on) }}
