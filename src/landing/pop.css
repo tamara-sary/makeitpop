@@ -12,6 +12,18 @@
   mask-image: linear-gradient(var(--fade-dir, 120deg), #000 0%, transparent 70%);
 }
 
+/* Hero dots live only where there is NO text: right side on desktop, bottom on mobile (text contrast stays clean) */
+.halftone-hero {
+  -webkit-mask-image: linear-gradient(0deg, #000 0%, transparent 45%);
+  mask-image: linear-gradient(0deg, #000 0%, transparent 45%);
+}
+@media (min-width: 1024px) {
+  .halftone-hero {
+    -webkit-mask-image: linear-gradient(270deg, #000 0%, transparent 50%);
+    mask-image: linear-gradient(270deg, #000 0%, transparent 50%);
+  }
+}
+
 /* Bricolage Grotesque's width axis: condensed poster type */
 .cond { font-stretch: 75%; font-family: var(--font-display); font-weight: 800; letter-spacing: -0.02em; line-height: 0.86; }
 

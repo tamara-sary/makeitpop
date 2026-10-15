@@ -13,6 +13,14 @@ export const HERO_STICKIES: Crit[] = [
   { id: 'l3', name: 'Marta', level: 'Senior', tag: '', agrees: 0, color: 'sun', text: 'The drop-off is the story.' },
 ]
 
+// ---------- palettes (lab only): override the pop-* tokens; ink text passes on every fill ----------
+export const PALETTES = {
+  riso: { name: 'Riso', vars: { pink: '#ff5ea8', sun: '#ffd23f', blue: '#7aa2ff', mint: '#3fdc9a' } },
+  bubblegum: { name: 'Bubblegum', vars: { pink: '#ff7ac6', sun: '#ffe14d', blue: '#8fb4ff', mint: '#6fe3b5' } },
+  arcade: { name: 'Arcade', vars: { pink: '#ff6b4a', sun: '#ffd23f', blue: '#c7a6ff', mint: '#3fdc9a' } },
+} as const
+export type PaletteKey = keyof typeof PALETTES
+
 // ---------- comic starburst ----------
 // Deterministic spiky polygon so every render is the same shape.
 function burstPoints(spikes: number, outer = 50, inner = 37) {
@@ -43,7 +51,8 @@ export function Burst({ children, fill = 'var(--color-pop-sun)', spikes = 14, cl
 export function Ticker({ words, className = '' }: { words: string[]; className?: string }) {
   const row = words.flatMap((w, i) => [<span key={'w' + i}>{w}</span>, <span key={'s' + i} aria-hidden="true">✦</span>])
   return (
-    <div className={'overflow-hidden border-y-2 border-ink ' + className} aria-label={words.join(', ')}>
+    <div className={'overflow-hidden border-y-2 border-ink ' + className}>
+      <span className="sr-only">{words.join(', ')}</span>
       <div className="ticker gap-6 py-3 pr-6" aria-hidden="true">
         <div className="flex shrink-0 gap-6">{row}</div>
         <div className="flex shrink-0 gap-6">{row}</div>
@@ -193,5 +202,42 @@ export function WhatCards({ title = 'What you get, every day', dark = false }: {
         <a href="https://github.com/tamara-sary/makeitpop" className="font-bold text-ink underline underline-offset-2">Open source on GitHub</a>
       </p>
     </section>
+  )
+}
+
+// ---------- footer: the prototype note stays; nav + socials added ----------
+const FOOT_NAV = [
+  { to: '/today', label: 'Today' },
+  { to: '/archive', label: 'Archive' },
+  { to: '/steam-room', label: 'Steam room' },
+  { to: '/me', label: 'Your profile' },
+]
+const SOCIALS = [
+  { href: 'https://www.linkedin.com/in/tamarasaribekyan', label: 'LinkedIn' },
+  { href: 'https://happyui.dev', label: 'happyui.dev' },
+]
+
+export function SiteFooter() {
+  return (
+    <footer className="bg-desk">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-4 py-10 sm:px-6">
+        <nav aria-label="Footer" className="flex flex-wrap items-center gap-2">
+          {FOOT_NAV.map((l) => (
+            <Link key={l.to} to={l.to} className="border-2 border-ink bg-paper px-3 py-1.5 text-ui font-bold text-ink no-underline shadow-pop-sm hover:bg-pop-sun">{l.label}</Link>
+          ))}
+        </nav>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-pixel text-caption uppercase">Made by Tamara Sary</span>
+          {SOCIALS.map((s) => (
+            <a key={s.href} href={s.href} target="_blank" rel="noopener noreferrer" className="border-2 border-ink bg-ink px-3 py-1.5 text-ui font-bold text-paper no-underline shadow-pop-sm hover:bg-pop-pink hover:text-ink">
+              {s.label} <span aria-hidden="true">↗</span><span className="sr-only"> (opens in a new tab)</span>
+            </a>
+          ))}
+        </div>
+      </div>
+      <p className="border-t-2 border-ink px-4 py-4 text-center text-ui text-muted">
+        Prototype v1 · sample content is marked "sample" · anything you add is saved on this device only
+      </p>
+    </footer>
   )
 }

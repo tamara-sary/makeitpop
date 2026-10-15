@@ -1,0 +1,67 @@
+/* "What you get" showcase: little loops that each explain one feature.
+   Base styles = the FINAL state (what reduced-motion users see). Keyframes start from the "before" state.
+   Everything waits (paused) until the section scrolls into view (.play added by IntersectionObserver). */
+
+.show .anim { animation-duration: 8s; animation-iteration-count: infinite; animation-fill-mode: both; animation-play-state: paused; }
+.show.play .anim { animation-play-state: running; }
+
+/* typing: reveal text left to right */
+.type-reveal { display: inline-block; white-space: nowrap; overflow: hidden; vertical-align: bottom; }
+
+/* ---------- stage ---------- */
+.show .float-chip { animation-name: sc-bob; animation-duration: 5s; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+.show .float-chip:nth-child(2n) { animation-duration: 6.5s; animation-delay: -2s; }
+@keyframes sc-bob { 0%, 100% { translate: 0 0 } 50% { translate: 0 -10px } }
+
+.show .stage-type { animation-name: sc-type; animation-timing-function: steps(26, end); }
+@keyframes sc-type { 0%, 8% { max-width: 0 } 40%, 88% { max-width: 26ch } 96%, 100% { max-width: 0 } }
+.show .stage-send { animation-name: sc-send; }
+@keyframes sc-send { 0%, 42% { scale: 1; background: var(--color-paper) } 46% { scale: .9; background: var(--color-pop-sun) } 50%, 88% { scale: 1; background: var(--color-pop-sun) } 96%, 100% { background: var(--color-paper) } }
+
+/* ---------- tile 1: pin it ---------- */
+.show .pin-cursor { left: 36%; top: 40%; animation-name: sc-cursor; }
+@keyframes sc-cursor {
+  0%, 8% { left: 80%; top: 86%; scale: 1 }
+  34% { left: 36%; top: 40%; scale: 1 }
+  37% { scale: .78 } 40% { scale: 1 }
+  86% { left: 36%; top: 40%; opacity: 1 }
+  94% { opacity: 0 } 100% { left: 80%; top: 86%; opacity: 0 }
+}
+.show .pin-dot { animation-name: sc-dot; }
+@keyframes sc-dot { 0%, 36% { scale: 0 } 40% { scale: 1.3 } 44%, 88% { scale: 1 } 94%, 100% { scale: 0 } }
+.show .pin-sticky { animation-name: sc-sticky; }
+@keyframes sc-sticky {
+  0%, 41% { scale: 0; rotate: -14deg; opacity: 0 }
+  47% { scale: 1.08; rotate: 2deg; opacity: 1 }
+  52%, 86% { scale: 1; rotate: -3deg; opacity: 1 }
+  94%, 100% { scale: .9; rotate: -3deg; opacity: 0 }
+}
+
+/* ---------- tile 2: your eye first ---------- */
+.show .eye-you { animation-name: sc-you; }
+@keyframes sc-you { 0%, 8% { opacity: 0; translate: -14px 0 } 18%, 90% { opacity: 1; translate: 0 0 } 97%, 100% { opacity: 0 } }
+.show .eye-row { animation-name: sc-unblur; }
+.show .eye-row:nth-child(3) { animation-name: sc-unblur-2; }
+.show .eye-row:nth-child(4) { animation-name: sc-unblur-3; }
+@keyframes sc-unblur { 0%, 38% { filter: blur(3px) } 44%, 90% { filter: blur(0) } 97%, 100% { filter: blur(3px) } }
+@keyframes sc-unblur-2 { 0%, 44% { filter: blur(3px) } 50%, 90% { filter: blur(0) } 97%, 100% { filter: blur(3px) } }
+@keyframes sc-unblur-3 { 0%, 50% { filter: blur(3px) } 56%, 90% { filter: blur(0) } 97%, 100% { filter: blur(3px) } }
+.show .eye-locked { opacity: 0; animation-name: sc-locked; }
+.show .eye-open { animation-name: sc-open; }
+@keyframes sc-locked { 0%, 34% { opacity: 1 } 38%, 94% { opacity: 0 } 98%, 100% { opacity: 1 } }
+@keyframes sc-open { 0%, 34% { opacity: 0; scale: .8 } 40% { opacity: 1; scale: 1.08 } 44%, 92% { opacity: 1; scale: 1 } 97%, 100% { opacity: 0 } }
+
+/* ---------- tile 3: remix it ---------- */
+.show .remix-type { animation-name: sc-rtype; animation-timing-function: steps(22, end); }
+@keyframes sc-rtype { 0%, 4% { max-width: 0 } 28%, 90% { max-width: 22ch } 97%, 100% { max-width: 0 } }
+.show .remix-strike { animation-name: sc-strike; }
+@keyframes sc-strike { 0%, 36% { scale: 0 1 } 44%, 90% { scale: 1 1 } 97%, 100% { scale: 0 1 } }
+.show .remix-add { animation-name: sc-add; animation-timing-function: steps(20, end); }
+@keyframes sc-add { 0%, 46% { clip-path: inset(0 100% 0 0) } 64%, 90% { clip-path: inset(0 0 0 0) } 97%, 100% { clip-path: inset(0 100% 0 0) } }
+.show .remix-done { animation-name: sc-done; }
+@keyframes sc-done { 0%, 66% { opacity: 0; scale: .7 } 71% { opacity: 1; scale: 1.1 } 75%, 90% { opacity: 1; scale: 1 } 97%, 100% { opacity: 0 } }
+
+@media (prefers-reduced-motion: reduce) {
+  .show .anim, .show .float-chip { animation: none !important; }
+  .show .eye-locked { opacity: 0; }
+}
