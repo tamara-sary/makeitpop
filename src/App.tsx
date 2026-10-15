@@ -7,6 +7,7 @@ import Archive from './pages/Archive'
 import SteamRoom from './pages/SteamRoom'
 import Home from './pages/Home'
 import Profile from './pages/Profile'
+import Lab from './pages/Lab'
 
 function ScrollTop() {
   const { pathname } = useLocation()
@@ -18,6 +19,8 @@ function ScrollTop() {
 function Main({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
   const editor = pathname === '/today' || pathname.startsWith('/day/')
+  // landing lab pages are full-bleed posters: no grid, no max width
+  if (pathname.startsWith('/lab')) return <main className="min-w-0">{children}</main>
   return <main className={editor ? 'grid gap-12 pb-8' : 'mx-auto grid max-w-7xl gap-12 px-4 py-8 sm:py-10'}>{children}</main>
 }
 
@@ -36,6 +39,7 @@ export default function App() {
             <Route path="/archive" element={<Archive />} />
             <Route path="/steam-room" element={<SteamRoom />} />
             <Route path="/me" element={<Profile />} />
+            <Route path="/lab/:v?" element={<Lab />} />
             <Route path="/how-it-works" element={<Navigate to="/" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

@@ -24,6 +24,10 @@
   --color-canvas-dot: var(--color-canvas-dot);
   --color-canvas-section: var(--color-canvas-section);
   --color-canvas-section-border: var(--color-canvas-section-border);
+  --color-pop-pink: var(--color-pop-pink);
+  --color-pop-sun: var(--color-pop-sun);
+  --color-pop-blue: var(--color-pop-blue);
+  --color-pop-mint: var(--color-pop-mint);
   --text-micro: var(--text-micro);
   --text-caption: var(--text-caption);
   --text-ui: var(--text-ui);

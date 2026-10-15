@@ -1,0 +1,50 @@
+/* Landing lab: pop-art layer on top of the Make It Pop tokens.
+   Halftone = Ben-Day dots (the comic print texture), always drawn in ink at low opacity over a flat pop colour. */
+
+@layer components {
+.halftone {
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--color-ink) var(--dot-alpha, 16%), transparent) 26%, transparent 29%);
+  background-size: var(--dot-size, 11px) var(--dot-size, 11px);
+}
+/* dots fade out across the field, like a comic panel's light source */
+.halftone-fade {
+  -webkit-mask-image: linear-gradient(var(--fade-dir, 120deg), #000 0%, transparent 70%);
+  mask-image: linear-gradient(var(--fade-dir, 120deg), #000 0%, transparent 70%);
+}
+
+/* Bricolage Grotesque's width axis: condensed poster type */
+.cond { font-stretch: 75%; font-family: var(--font-display); font-weight: 800; letter-spacing: -0.02em; line-height: 0.86; }
+
+/* Ink-outlined type for the loudest words */
+.outline-ink { -webkit-text-stroke: 2px var(--color-ink); paint-order: stroke fill; }
+
+/* Ticker band */
+.ticker { display: flex; width: max-content; animation: ticker 28s linear infinite; }
+.ticker:hover { animation-play-state: paused; }
+@keyframes ticker { to { transform: translateX(-50%); } }
+
+/* Comic caption box (the yellow rectangle narrators talk in) */
+.caption-box { background: var(--color-pop-sun); border: 2px solid var(--color-ink); padding: 6px 10px; font: 400 12px/1.3 var(--font-pixel); text-transform: uppercase; letter-spacing: 0.02em; }
+
+/* Speech balloon with a tail */
+.balloon { position: relative; background: var(--color-paper); border: 2px solid var(--color-ink); border-radius: 999px; padding: 14px 22px; }
+.balloon::after {
+  content: ""; position: absolute; left: var(--tail-x, 24%); bottom: -16px; width: 22px; height: 18px;
+  background: var(--color-paper); border: solid var(--color-ink); border-width: 0 2px 2px 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%); transform: skewX(-20deg);
+}
+
+/* What-is cards: the little UI pieces lift a touch on hover */
+.what-tile .lift { transition: translate .25s ease, rotate .25s ease; }
+.what-tile:hover .lift { translate: 0 -4px; }
+.what-tile:hover .lift-tilt { rotate: -2deg; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker { animation: none; }
+  .what-tile .lift { transition: none; }
+}
+}
+
+/* index.css resets h1-h4/p margins OUTSIDE any layer, which silently beats Tailwind's margin utilities.
+   Inside the lab, hand margins back to the utility layer. */
+.lab :is(h1, h2, h3, h4, p) { margin: revert-layer; }

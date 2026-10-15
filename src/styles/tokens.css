@@ -15,10 +15,14 @@
   --p-color-white: #ffffff;
   --p-color-pink-300: #ff9fd4;
   --p-color-pink-400: #ff7ac6;
+  --p-color-pink-500: #ff3d9a;
   --p-color-sun-400: #ffe14d;
+  --p-color-sun-500: #ffd60a;
   --p-color-mint-300: #8fe3c1;
+  --p-color-mint-500: #18d39a;
   --p-color-sky-300: #a9d8ff;
   --p-color-blue-500: #3b6ef5;
+  --p-color-blue-600: #2b59ff;
   --p-color-leaf-700: #56633c;
   --p-size-10: 10px;
   --p-size-11: 11px;
@@ -60,6 +64,10 @@
   --color-canvas-dot: var(--p-color-warm-300); /* Canvas dot grid */
   --color-canvas-section: var(--p-color-warm-150); /* Neutral canvas section fill */
   --color-canvas-section-border: var(--p-color-warm-400);
+  --color-pop-pink: var(--p-color-pink-500); /* Landing: loud pink fields + bursts */
+  --color-pop-sun: var(--p-color-sun-500); /* Landing: loud yellow, CTA text on ink */
+  --color-pop-blue: var(--p-color-blue-600); /* Landing: loud blue fields (white text OK, 5.6:1) */
+  --color-pop-mint: var(--p-color-mint-500); /* Landing: loud mint fields */
   --text-micro: var(--p-size-11);
   --text-caption: var(--p-size-12);
   --text-ui: var(--p-size-13);
