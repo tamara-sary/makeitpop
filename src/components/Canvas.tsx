@@ -8,7 +8,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type 
 //   Space + drag, middle-drag or drag on empty canvas = pan
 //   ⌘/Ctrl + = / − = zoom · Shift+0 = 100% · Shift+1 = fit all · Shift+2 = fit the current section
 
-export type SectionId = 'brief' | 'original' | 'remix' | 'share'
+export type SectionId = 'brief' | 'original' | 'remix' | 'kit' | 'share'
 export type View = SectionId | 'all'
 export type Focus = { view: View; n: number } // n bumps on every request, so asking for the same view again re-fits
 
@@ -55,11 +55,12 @@ const union = (rs: Rect[]): Rect => {
 
 const typing = (t: EventTarget | null) => t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))
 
-export function Canvas({ focus, onFocus, sections, avoid, children }: {
+export function Canvas({ focus, onFocus, sections, avoid, reserveRight = 0, children }: {
   focus: Focus
   onFocus: (v: View) => void
   sections: CanvasSection[]
   avoid?: { w: number; h: number } // a card pinned bottom-right that "fit" keeps the section clear of
+  reserveRight?: number // px kept free on the right when fitting (e.g. the editor inspector)
   children?: ReactNode // screen-space overlays (e.g. the steam room card)
 }) {
   const vp = useRef<HTMLDivElement>(null)
@@ -70,8 +71,8 @@ export function Canvas({ focus, onFocus, sections, avoid, children }: {
   const [spaceDown, setSpaceDown] = useState(false)
   const [panning, setPanning] = useState(false)
   const pan = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(null)
-  const latest = useRef({ sections, avoid })
-  latest.current = { sections, avoid }
+  const latest = useRef({ sections, avoid, reserveRight })
+  latest.current = { sections, avoid, reserveRight }
 
   const setCam = (c: Cam, smooth = false) => { camRef.current = c; setAnimate(smooth); setCamState(c) }
 
@@ -85,7 +86,7 @@ export function Canvas({ focus, onFocus, sections, avoid, children }: {
   const fitTo = (v: View, smooth: boolean) => {
     const el = vp.current
     if (!el) return
-    setCam(fitAvoiding(rectOf(v), el.clientWidth, el.clientHeight, v === 'brief' ? 'left' : 'center', latest.current.avoid), smooth)
+    setCam(fitAvoiding(rectOf(v), el.clientWidth - latest.current.reserveRight, el.clientHeight, v === 'brief' ? 'left' : 'center', latest.current.avoid), smooth)
   }
   // Zoom keeping the world point under (px, py) fixed on screen, the way Figma zooms to the cursor.
   const zoomAt = (px: number, py: number, next: number, smooth = false) => {

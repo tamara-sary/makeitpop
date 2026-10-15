@@ -29,7 +29,7 @@
 - Copy rule: UI says "sticky/stickies", never "crit".
 
 ## Accessibility (WCAG 2.2 AA)
-- Text contrast >= 4.5:1, UI/borders >= 3:1. Focus ring = pink outline (global :focus-visible), never remove it.
+- Text contrast >= 4.5:1, UI/borders >= 3:1. Focus ring = ink outline (global :focus-visible; pink was invisible on the pink hero), never remove it.
 - Respect `prefers-reduced-motion` for any new animation.
 - Hit targets >= 24x24px. Status never colour-only.
 

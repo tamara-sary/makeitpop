@@ -9,6 +9,10 @@ import { Comments } from '../components/Comments'
 import { TitleBar, useToast } from '../components/ui'
 import { SAMPLE_COMMENTS, SAMPLE_CRITS, TODAY, WEEKS, dayByN, type Comment, type Crit, type Day } from '../data/days'
 import { useStored } from '../lib/store'
+import { useEditor } from '../editor/useEditor'
+import { EditableDesign } from '../editor/EditableDesign'
+import { Inspector } from '../editor/Inspector'
+import { downloadCode, saveAsShot } from '../editor/export'
 import { useProfile } from '../lib/profile'
 
 const DESIGN_W = 1392 // Day 1 export width; the original section is sized to show it at 100%
@@ -22,6 +26,10 @@ export default function DayPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const [hiddenPref, setHidden] = useState(false)
+  // Editor V1: "Your remix" is an editable copy of the day's design (desktop only)
+  const [editing, setEditing] = useState(false)
+  const [shotBusy, setShotBusy] = useState(false)
+  const ed = useEditor(n)
   const [profile] = useProfile()
   const [adding, setAdding] = useState(false)
 
@@ -116,6 +124,22 @@ export default function DayPage() {
       onStart={() => { setView('original'); if (!wide) document.getElementById('challenge-m')?.scrollIntoView({ behavior: 'smooth' }) }} started={briefSeen} />
   )
   const remix = <RemixSteps day={day} topCrit={topCrit} locked={locked} />
+  const startEditing = () => { setAdding(false); setEditing(true); setView('remix') }
+  const editor = day.live ? (
+    <EditableDesign day={day} editing={editing} ed={ed} onEditRequest={startEditing} />
+  ) : (
+    <p className="p-6 text-body text-muted">This day's design can't be edited here yet. Grab the files instead.</p>
+  )
+  const exportCode = () => { if (ed.doc && day.live) downloadCode(ed.doc, n, day.live) }
+  const useAsShot = async () => {
+    if (!ed.doc) return
+    setShotBusy(true)
+    try {
+      const ok = await saveAsShot(ed.doc, n)
+      toast(ok ? 'Saved as your remix shot. It\'s on your profile too.' : 'Your browser is out of space for images. Remove an older shot from your profile.')
+    } catch { toast('Couldn\'t render the shot. Try Download code instead.') }
+    finally { setShotBusy(false) }
+  }
   const share = <ShareStep day={day} />
 
   const steam = (
@@ -154,6 +178,7 @@ export default function DayPage() {
           <CritLock locked={locked} count={othersCount} hidden={hiddenPref} setHidden={setHidden} onAdd={() => setAdding(true)} hasDraft={adding} />
           {stickies}
         </section>
+        <p className="border-2 border-ink bg-sun p-4 text-body font-semibold">Editing your copy works on a laptop. Open this page there to remix it right here.</p>
         <div className="border-2 border-ink bg-cream p-5">{remix}</div>
         <div className="border-2 border-ink bg-cream p-5">{share}</div>
         {steamOpen && steam}
@@ -174,8 +199,12 @@ export default function DayPage() {
         </button>
       ),
     },
-    { id: 'remix', n: `${n}b`, name: 'Your remix', width: 620, children: remix },
-    { id: 'share', n: `${n}c`, name: 'Share', width: 520, children: share },
+    {
+      id: 'remix', n: `${n}b`, name: 'Your remix · editable copy', width: DESIGN_W + 52, tone: 'neutral', children: editor,
+      tabExtra: <span className="text-ui font-semibold text-muted">{editing ? 'Click to select · double-click text to rewrite' : 'The original stays untouched'}</span>,
+    },
+    { id: 'kit', n: `${n}c`, name: 'Files + your shot', width: 620, children: remix },
+    { id: 'share', n: `${n}d`, name: 'Share', width: 520, children: share },
   ]
 
   return (
@@ -183,11 +212,17 @@ export default function DayPage() {
       <section id="challenge" aria-label={`The challenge: Day ${n} design`}
         className="flex h-[calc(100dvh-49px)] min-h-[560px] min-w-0 flex-col border-b border-[#e4ded4] bg-[#f3eee6]">
         <CanvasBar day={day} view={view} setView={setView} locked={locked} count={othersCount} hidden={hiddenPref} setHidden={setHidden}
-          adding={adding} setAdding={(v) => { if (v && view !== 'original') setView('original'); setAdding(v) }} steamOpen={steamOpen} setSteamOpen={setSteamOpen}
+          adding={adding} setAdding={(v) => { if (v) { setEditing(false); if (view !== 'original') setView('original') } setAdding(v) }} steamOpen={steamOpen} setSteamOpen={setSteamOpen}
+          editing={editing} setEditing={(v) => { if (v) startEditing(); else { setEditing(false); ed.select(null) } }}
           talkOpen={talkOpen} setTalkOpen={setTalkOpen} talkCount={comments.length} />
         <div className="relative flex min-h-0 flex-1 flex-col">
-          <Canvas focus={focus} onFocus={setView} sections={sections} avoid={steamOpen && !steamPos ? STEAM_CARD : undefined}>
-            {steamOpen && <div className="absolute z-30" style={{ right: steamPos?.r ?? 16, bottom: steamPos?.b ?? 16 }}>{steam}</div>}
+          <Canvas focus={focus} onFocus={setView} sections={sections} avoid={steamOpen && !steamPos && !editing ? STEAM_CARD : undefined} reserveRight={editing ? 332 : 0}>
+            {steamOpen && !editing && <div className="absolute z-30" style={{ right: steamPos?.r ?? 16, bottom: steamPos?.b ?? 16 }}>{steam}</div>}
+            {editing && (
+              <div className="pointer-events-none absolute bottom-4 right-4 top-4 z-30 flex items-start">
+                <Inspector ed={ed} onExportCode={exportCode} onUseAsShot={useAsShot} busy={shotBusy} />
+              </div>
+            )}
           </Canvas>
           {/* Outside the canvas element, so the panel scrolls normally instead of panning the canvas */}
           {talkOpen && (
@@ -307,11 +342,13 @@ const SECTION_TABS: { id: View; label: string }[] = [
   { id: 'brief', label: 'Brief' },
   { id: 'original', label: 'Original' },
   { id: 'remix', label: 'Remix' },
+  { id: 'kit', label: 'Files' },
   { id: 'share', label: 'Share' },
   { id: 'all', label: 'Fit all' },
 ]
 
-function CanvasBar({ day, view, setView, locked, count, hidden, setHidden, adding, setAdding, steamOpen, setSteamOpen, talkOpen, setTalkOpen, talkCount }: {
+function CanvasBar({ day, view, setView, locked, count, hidden, setHidden, adding, setAdding, steamOpen, setSteamOpen, talkOpen, setTalkOpen, talkCount, editing, setEditing }: {
+  editing: boolean; setEditing: (v: boolean) => void
   day: Day; view: View; setView: (v: View) => void; locked: boolean; count: number; hidden: boolean; setHidden: (v: boolean) => void
   adding: boolean; setAdding: (v: boolean) => void; steamOpen: boolean; setSteamOpen: (v: boolean) => void
   talkOpen: boolean; setTalkOpen: (v: boolean) => void; talkCount: number
@@ -328,11 +365,14 @@ function CanvasBar({ day, view, setView, locked, count, hidden, setHidden, addin
         ))}
       </nav>
       <div className={group} role="group" aria-label="Canvas tools">
-        <button type="button" className={seg(!adding)} aria-pressed={!adding} onClick={() => setAdding(false)}>
+        <button type="button" className={seg(!adding && !editing)} aria-pressed={!adding && !editing} onClick={() => { setAdding(false); setEditing(false) }}>
           <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 1l5 13 2-5 5-2z" fill="currentColor" /></svg>Move
         </button>
         <button type="button" className={seg(adding)} aria-pressed={adding} onClick={() => { setHidden(false); setAdding(true) }}>
           <span className="grid h-4 w-4 place-items-center rounded-full rounded-tl-none border-[1.5px] border-current text-[12px] font-extrabold leading-none" aria-hidden="true">+</span>Add sticky
+        </button>
+        <button type="button" className={seg(editing)} aria-pressed={editing} onClick={() => setEditing(!editing)} title="Edit your copy of the design">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z" /></svg>Edit
         </button>
         <CritLock locked={locked} count={count} hidden={hidden} setHidden={setHidden} onAdd={() => setAdding(true)} hasDraft={adding} />
       </div>
