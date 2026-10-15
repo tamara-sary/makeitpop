@@ -163,7 +163,7 @@ export function Inspector({ ed, onExportCode, onUseAsShot, busy }: { ed: EditorA
           </button>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-caption text-muted">{ed.edits.length} change{ed.edits.length === 1 ? '' : 's'} · saved in this browser</span>
+          <span className="text-caption text-muted">{ed.edits.length} change{ed.edits.length === 1 ? '' : 's'}{ed.edits.some((e) => e.by === 'agent') ? ` (${ed.edits.filter((e) => e.by === 'agent').length} by your AI)` : ''} · saved here</span>
           <button type="button" className="cursor-pointer border-0 bg-transparent p-0 text-caption font-semibold text-chrome-text underline" onClick={ed.reset} disabled={!ed.edits.length}>Reset to original</button>
         </div>
       </div>

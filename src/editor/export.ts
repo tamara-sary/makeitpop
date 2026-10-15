@@ -4,7 +4,7 @@ import { shotKey, type Shot } from '../lib/profile'
 
 // "Download code": the edited design as ONE self-contained HTML file (its stylesheet inlined),
 // ready to open in Cursor / Claude Code. Editor-only marks (outlines, contenteditable) are stripped.
-export async function downloadCode(doc: Document, dayN: number, baseUrl: string) {
+export async function buildHtml(doc: Document, baseUrl: string) {
   const root = doc.documentElement.cloneNode(true) as HTMLElement
   root.querySelectorAll('[data-mip-editor]').forEach((n) => n.remove())
   root.querySelectorAll('[data-mip-sel],[data-mip-hover],[contenteditable]').forEach((n) => {
@@ -20,7 +20,11 @@ export async function downloadCode(doc: Document, dayN: number, baseUrl: string)
       link.replaceWith(style)
     } catch { /* leave the link; the file still opens */ }
   }
-  const html = '<!doctype html>\n<!-- Remixed on Make It Pop · makeitpop.work · free to remix, credit Make It Pop -->\n' + root.outerHTML
+  return '<!doctype html>\n<!-- Remixed on Make It Pop · makeitpop.work · free to remix, credit Make It Pop -->\n' + root.outerHTML
+}
+
+export async function downloadCode(doc: Document, dayN: number, baseUrl: string) {
+  const html = await buildHtml(doc, baseUrl)
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
   a.download = `makeitpop-day-${String(dayN).padStart(2, '0')}-remix.html`

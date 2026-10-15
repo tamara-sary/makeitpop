@@ -1,10 +1,19 @@
 // Editor V1 core: edits are tiny records (where + what), so they can be undone, saved, replayed and exported.
 // The design lives in a same-origin iframe; every edit changes that real HTML/CSS (the design IS code).
 
-export type Edit =
+export type Edit = (
   | { kind: 'text'; path: number[]; value: string; prev: string }
   | { kind: 'style'; path: number[]; prop: string; value: string; prev: string }
   | { kind: 'var'; prop: string; value: string; prev: string } // a palette colour on :root, changes it everywhere
+) & { by?: 'agent' } // made by an AI agent through the MCP bridge (shown in the change counter)
+
+// One-line description of an edit, for undo messages and the agent
+export function describeEdit(e: Edit, doc: Document | null) {
+  if (e.kind === 'var') return `${e.prop} → ${e.value}`
+  const el = doc ? elAt(doc, e.path) : null
+  const who = el ? labelOf(el) : 'element'
+  return e.kind === 'text' ? `${who} text "${e.prev}" → "${e.value}"` : `${who} ${e.prop} → ${e.value}`
+}
 
 // Element address = child indexes from <body>. The challenge markup is fixed, so this is stable and tiny.
 export function pathOf(el: Element): number[] {

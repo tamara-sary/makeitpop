@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { DesignPreview } from '../components/DesignPreview'
 import { RemixSteps, ShareStep } from '../components/RemixKit'
@@ -13,6 +13,8 @@ import { useEditor } from '../editor/useEditor'
 import { EditableDesign } from '../editor/EditableDesign'
 import { Inspector } from '../editor/Inspector'
 import { downloadCode, saveAsShot } from '../editor/export'
+import { useAgentBridge } from '../editor/agentBridge'
+import { AgentConnect } from '../editor/AgentConnect'
 import { useProfile } from '../lib/profile'
 
 const DESIGN_W = 1392 // Day 1 export width; the original section is sized to show it at 100%
@@ -89,6 +91,12 @@ export default function DayPage() {
     () => [...myComments, ...(SAMPLE_COMMENTS[n] ?? [])].map((c) => ({ ...c, replies: [...c.replies, ...(myReplies[c.id] ?? [])] })),
     [myComments, myReplies, n],
   )
+
+  // MCP bridge: lets the user's AI agent edit "Your remix" live (same edit records as a human)
+  const agent = useAgentBridge({
+    ed, day: n, title: day?.title ?? '', liveUrl: day?.live, locked, hiddenCount: othersCount,
+    stickies: crits.map((c) => ({ name: c.name, level: c.level, text: c.text, agrees: c.agrees, x: c.x, y: c.y, mine: !c.sample })),
+  })
 
   if (!day || n > TODAY) return <Navigate to="/archive" replace />
   const isToday = n === TODAY
@@ -214,7 +222,9 @@ export default function DayPage() {
         <CanvasBar day={day} view={view} setView={setView} locked={locked} count={othersCount} hidden={hiddenPref} setHidden={setHidden}
           adding={adding} setAdding={(v) => { if (v) { setEditing(false); if (view !== 'original') setView('original') } setAdding(v) }} steamOpen={steamOpen} setSteamOpen={setSteamOpen}
           editing={editing} setEditing={(v) => { if (v) startEditing(); else { setEditing(false); ed.select(null) } }}
-          talkOpen={talkOpen} setTalkOpen={setTalkOpen} talkCount={comments.length} />
+          talkOpen={talkOpen} setTalkOpen={setTalkOpen} talkCount={comments.length}
+          agent={<AgentConnect status={agent.status} error={agent.error} seg={barSeg}
+            onConnect={(code) => { agent.connect(code); startEditing() }} onDisconnect={agent.disconnect} />} />
         <div className="relative flex min-h-0 flex-1 flex-col">
           <Canvas focus={focus} onFocus={setView} sections={sections} avoid={steamOpen && !steamPos && !editing ? STEAM_CARD : undefined} reserveRight={editing ? 332 : 0}>
             {steamOpen && !editing && <div className="absolute z-30" style={{ right: steamPos?.r ?? 16, bottom: steamPos?.b ?? 16 }}>{steam}</div>}
@@ -347,8 +357,12 @@ const SECTION_TABS: { id: View; label: string }[] = [
   { id: 'all', label: 'Fit all' },
 ]
 
-function CanvasBar({ day, view, setView, locked, count, hidden, setHidden, adding, setAdding, steamOpen, setSteamOpen, talkOpen, setTalkOpen, talkCount, editing, setEditing }: {
-  editing: boolean; setEditing: (v: boolean) => void
+// segmented-control button look, shared with the agent connect button
+const barSeg = (on: boolean) =>
+  'flex items-center gap-1.5 rounded-chrome px-2.5 py-1.5 text-ui font-semibold cursor-pointer border-0 whitespace-nowrap ' + (on ? 'bg-chrome-selected text-paper' : 'bg-transparent text-chrome-text hover:bg-chrome-subtle')
+
+function CanvasBar({ day, view, setView, locked, count, hidden, setHidden, adding, setAdding, steamOpen, setSteamOpen, talkOpen, setTalkOpen, talkCount, editing, setEditing, agent }: {
+  editing: boolean; setEditing: (v: boolean) => void; agent: ReactNode
   day: Day; view: View; setView: (v: View) => void; locked: boolean; count: number; hidden: boolean; setHidden: (v: boolean) => void
   adding: boolean; setAdding: (v: boolean) => void; steamOpen: boolean; setSteamOpen: (v: boolean) => void
   talkOpen: boolean; setTalkOpen: (v: boolean) => void; talkCount: number
@@ -379,6 +393,7 @@ function CanvasBar({ day, view, setView, locked, count, hidden, setHidden, addin
       {!steamOpen && (
         <button type="button" className={seg(false)} onClick={() => setSteamOpen(true)}>Steam room</button>
       )}
+      {agent}
       <button type="button" className={seg(talkOpen)} aria-pressed={talkOpen} aria-controls="discussion" onClick={() => setTalkOpen(!talkOpen)}>
         Discussion · {talkCount}
       </button>
