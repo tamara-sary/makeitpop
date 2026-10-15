@@ -36,8 +36,6 @@ export default function LandingA() {
 
       <Ticker className="cond bg-ink text-[clamp(28px,4vw,48px)] uppercase text-pop-sun" words={['Critique it', 'Remix it', 'Post it', 'One design a day', 'Your eye first', 'Make it pop']} />
 
-      <Showcase />
-
       <section className="border-y-2 border-ink bg-pop-sun">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-20 sm:px-6 md:grid-cols-[1.3fr_1fr]">
           <div>
@@ -45,12 +43,16 @@ export default function LandingA() {
             <p className="mt-6 max-w-[52ch] text-lead">
               Hundreds of applicants per role, design tests, ghosting. Practising alone gives you reps, but nobody tells you what's off. Here, people do.
             </p>
+            <p className="mt-6 font-display text-title-sm font-extrabold">I built this while job-hunting too. <span className="font-sans text-lead font-medium">Tamara, product designer</span></p>
           </div>
           <div className="relative mx-auto w-[min(360px,80vw)]">
             <img src="/brand/apple.webp" alt="The Make It Pop apple, looking surprised" className="apple-hop relative w-full" />
           </div>
         </div>
       </section>
+
+      <Showcase />
+
 
       <section className="relative overflow-hidden border-b-2 border-ink bg-pop-blue">
         <div className="halftone halftone-hero pointer-events-none absolute inset-y-0 right-0 w-1/3 max-lg:hidden" style={{ ['--dot-alpha' as string]: '30%' }} />

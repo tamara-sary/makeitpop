@@ -1,4 +1,5 @@
-import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { load, save } from '../lib/store'
 import { Link } from 'react-router-dom'
 import { Sticky } from '../components/Stickies'
 import type { Crit } from '../data/days'
@@ -8,9 +9,9 @@ import './pop.css'
 export const CTA = { to: '/today', label: 'Pin your first sticky' }
 
 export const HERO_STICKIES: Crit[] = [
-  { id: 'l1', name: 'Jon', level: 'Mid', tag: '', agrees: 0, color: 'mint', text: '38% of what? Add units.' },
-  { id: 'l2', name: 'Priya', level: 'Senior', tag: '', agrees: 0, color: 'pink', text: 'Two CTAs fight. Pick one.' },
-  { id: 'l3', name: 'Marta', level: 'Senior', tag: '', agrees: 0, color: 'sun', text: 'The drop-off is the story.' },
+  { id: 'l1', name: 'Jon', level: 'Mid', tag: '', agrees: 0, color: 'mint', text: '38% of what? Add units.', sample: true },
+  { id: 'l2', name: 'Priya', level: 'Senior', tag: '', agrees: 0, color: 'pink', text: 'Two CTAs fight. Pick one.', sample: true },
+  { id: 'l3', name: 'Marta', level: 'Senior', tag: '', agrees: 0, color: 'sun', text: 'The drop-off is the story.', sample: true },
 ]
 
 // ---------- comic starburst ----------
@@ -116,5 +117,24 @@ export function SiteFooter() {
         Prototype v1 · sample content is marked "sample" · anything you add is saved on this device only
       </p>
     </footer>
+  )
+}
+
+// ---------- pause all looping motion ----------
+// One switch for the ticker, the showcase loops and the apple. Remembered per browser.
+export function MotionToggle({ className = '' }: { className?: string }) {
+  const [paused, setPaused] = useState(() => load<boolean>('motion-paused', false))
+  useEffect(() => {
+    document.documentElement.classList.toggle('motion-paused', paused)
+    save('motion-paused', paused)
+  }, [paused])
+  return (
+    <button type="button" data-sound="none" aria-pressed={paused} onClick={() => setPaused(!paused)}
+      className={'inline-flex min-h-9 cursor-pointer items-center gap-2 border-2 border-ink bg-paper px-3 py-1.5 text-ui font-bold text-ink shadow-pop-sm ' + className}>
+      <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+        {paused ? <path d="M7 4.5v15l12-7.5z" /> : <><rect x="6" y="4.5" width="4" height="15" /><rect x="14" y="4.5" width="4" height="15" /></>}
+      </svg>
+      {paused ? 'Play animations' : 'Pause animations'}
+    </button>
   )
 }

@@ -33,6 +33,11 @@
 /* Ticker band */
 .ticker { display: flex; width: max-content; animation: ticker 28s linear infinite; }
 .ticker:hover { animation-play-state: paused; }
+/* MotionToggle: stops every loop and shows its final, readable state (same as reduced motion),
+   instead of freezing mid-frame on a blurred row or an empty typing bar */
+.motion-paused .ticker, .motion-paused .show .anim, .motion-paused .show .float-chip,
+.motion-paused .apple-hop, .motion-paused .apple-mouth { animation: none !important; }
+.motion-paused .show .eye-locked { opacity: 0; }
 @keyframes ticker { to { transform: translateX(-50%); } }
 
 /* Comic caption box (the yellow rectangle narrators talk in) */

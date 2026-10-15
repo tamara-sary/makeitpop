@@ -20,9 +20,10 @@ export function useIntro() {
     try { sessionStorage.setItem(SEEN, '1') } catch { /* ignore */ }
     // card is 240 x 320; after a 90deg turn it spans 320 wide x 240 tall
     document.documentElement.style.setProperty('--cover', String(Math.max(innerWidth / 320, innerHeight / 240) * 1.15))
-    const t1 = setTimeout(() => setState('zooming'), 1350)
-    const t2 = setTimeout(() => setState('leaving'), 2550)
-    const t3 = setTimeout(() => setState('off'), 2950)
+    // ~1.2s in total: it greets, it doesn't gate (critique 2026-10-15: 3s ate a third of a visitor's attention)
+    const t1 = setTimeout(() => setState('zooming'), 420)
+    const t2 = setTimeout(() => setState('leaving'), 1000)
+    const t3 = setTimeout(() => setState('off'), 1250)
     const skip = () => setState('off')
     window.addEventListener('keydown', skip, { once: true })
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); window.removeEventListener('keydown', skip) }
@@ -38,6 +39,7 @@ export function useIntro() {
           <Burst className="h-[88px] w-[120px] -rotate-6 justify-self-start" spikes={16}><span className="cond text-[34px]">POP!</span></Burst>
         </div>
       </div>
+      <span className="intro-skip font-pixel text-caption uppercase text-cream">Click or press any key to skip</span>
     </div>
   )
   return { overlay, heroIn: heroIn && (state === 'leaving' || state === 'off') }

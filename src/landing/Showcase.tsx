@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import './showcase.css'
+import { MotionToggle } from './parts'
 
 // "What you get": structure borrowed from Shopify Editions (stage + 3 feature tiles + feature catalogue),
 // built neo-brutalist: flat fills, ink borders, hard shadows, real Make It Pop UI inside, small loops that explain.
@@ -39,7 +40,7 @@ function Stage() {
       {/* floating "add a sticky" bar, like Shopify's prompt bar */}
       <div className="absolute bottom-[12%] left-1/2 flex w-[min(520px,78%)] -translate-x-1/2 items-center gap-3 border-2 border-ink bg-paper py-2 pl-2 pr-2 shadow-pop-lg" aria-hidden="true">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full rounded-tl-none border-2 border-ink bg-pop-pink font-display text-title-sm font-extrabold leading-none">+</span>
-        <span className="min-w-0 flex-1 text-body font-medium"><span className="anim stage-type type-reveal max-w-[26ch]">38% of what? Add the units.</span><span className="ml-0.5 inline-block h-5 w-0.5 translate-y-1 bg-ink" /></span>
+        <span className="min-w-0 flex-1 overflow-hidden whitespace-nowrap text-body font-medium"><span className="anim stage-type type-reveal max-w-[26ch]">Only Eng is blue. Alert or just big?</span><span className="ml-0.5 inline-block h-5 w-0.5 translate-y-1 bg-ink" /></span>
         <span className="anim stage-send shrink-0 border-2 border-ink px-3 py-1.5 text-ui font-extrabold">Stick it</span>
       </div>
     </div>
@@ -67,7 +68,7 @@ function PinTile() {
       </div>
       <span className="anim pin-dot absolute left-[36%] top-[40%] z-[1] grid h-6 w-6 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full rounded-tl-none border-2 border-ink bg-pop-pink text-caption font-extrabold">+</span>
       <div className="anim pin-sticky absolute left-[40%] top-[24%] z-[2] w-[48%] origin-top-left border-2 border-ink bg-sticky-mint p-2.5 shadow-pop-sm" style={{ rotate: '-3deg' }}>
-        <p className="text-ui font-semibold leading-snug">38% of what? Add units.</p>
+        <p className="text-ui font-semibold leading-snug">‘Ahead of pace’ reads like good news.</p>
         <p className="mt-1 font-pixel text-micro uppercase">You · Senior</p>
       </div>
       <svg className="anim pin-cursor absolute z-[3] h-7 w-7 drop-shadow-[2px_2px_0_var(--color-ink)]" viewBox="0 0 24 24">
@@ -77,10 +78,11 @@ function PinTile() {
   )
 }
 
+// Same people, same stickies as the hero (parts.tsx HERO_STICKIES), so the sample crowd stays consistent.
 const OTHERS = [
+  { n: 'Jon', l: 'Mid', t: '38% of what? Add units.', c: 'bg-sky' },
   { n: 'Priya', l: 'Senior', t: 'Two CTAs fight. Pick one.', c: 'bg-pop-pink' },
-  { n: 'Jon', l: 'Mid', t: 'The drop-off is the story.', c: 'bg-sky' },
-  { n: 'Marta', l: 'Senior', t: 'Legend hides the key number.', c: 'bg-pop-sun' },
+  { n: 'Marta', l: 'Senior', t: 'The drop-off is the story.', c: 'bg-pop-sun' },
 ]
 
 function EyeTile() {
@@ -89,7 +91,7 @@ function EyeTile() {
       <ul className="absolute inset-x-[8%] top-[9%] m-0 grid list-none gap-1 border-2 border-ink bg-paper p-1.5 shadow-pop-sm">
         <li className="anim eye-you flex items-center gap-2.5 bg-pop-sun/60 px-2 py-1.5">
           <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border-2 border-ink bg-paper text-micro font-extrabold">Y</span>
-          <span className="grid min-w-0 leading-tight"><b className="text-ui">You</b><span className="truncate text-caption">38% of what? Add units.</span></span>
+          <span className="grid min-w-0 leading-tight"><b className="text-ui">You</b><span className="truncate text-caption">‘Ahead of pace’ reads like good news.</span></span>
         </li>
         {OTHERS.map((p) => (
           <li key={p.n} className="anim eye-row flex items-center gap-2.5 px-2 py-1.5">
@@ -150,7 +152,10 @@ export default function Showcase() {
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
         <div className="mb-12 flex flex-wrap items-end justify-between gap-6">
           <h2 className="cond text-[clamp(64px,10vw,144px)] uppercase">What you get</h2>
-          <p className="max-w-[36ch] text-lead">One design a day, and everything you need to critique it, fix it and show it.</p>
+          <div className="grid justify-items-start gap-4">
+            <p className="max-w-[36ch] text-lead">One design a day, and everything you need to critique it, fix it and show it.</p>
+            <MotionToggle />
+          </div>
         </div>
         <Stage />
         <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-6">

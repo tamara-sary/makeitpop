@@ -17,7 +17,8 @@ body {
 }
 h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.025em; line-height: 1.05; text-wrap: balance; margin: 0; }
 p { margin: 0; }
-:focus-visible { outline: 3px solid var(--color-pink); outline-offset: 2px; }
+/* Ink ring: readable on every pop field (the old pink ring vanished on the pink hero, 1:1) */
+:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 3px; }
 
 /* ---------- brand components ---------- */
 @layer components {

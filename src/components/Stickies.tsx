@@ -29,7 +29,7 @@ export function Sticky({ crit, i, onAgree, style, className = '', children, onPo
         <>
           <p className={(big ? 'font-display text-[21px] font-extrabold leading-tight' : 'text-[14px] font-medium leading-snug')}>{crit.text}</p>
           <div className="flex items-center justify-between gap-2">
-            <span className="font-pixel text-[10px] leading-tight uppercase">{crit.name} · {crit.level}{crit.sample ? ' · sample' : ''}</span>
+            <span className="font-pixel text-caption leading-tight uppercase">{crit.name} · {crit.level}{crit.sample ? ' · sample' : ''}</span>
             {onAgree && (
               <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={onAgree} className="chip cursor-pointer whitespace-nowrap px-1.5 py-1 hover:bg-paper" aria-label={`Agree with ${crit.name}, ${crit.agrees} agree`}>
                 +1 · {crit.agrees}
@@ -120,7 +120,7 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
   const draftNote = draft && (
     <Sticky crit={{ id: 'draft', name: 'You', level: 'Mid', tag: '', text: '', agrees: 0, color: draft.color }} i={0}>
       <div className="flex items-center justify-between gap-2">
-        <label className="font-pixel text-[10px]" htmlFor="sticky-draft">YOUR STICKY</label>
+        <label className="font-pixel text-micro" htmlFor="sticky-draft">YOUR STICKY</label>
         <div className="flex gap-1" role="group" aria-label="Sticky colour">
           {(Object.keys(STICKY_BG) as StickyColor[]).map((c) => (
             <button key={c} type="button" aria-label={c} aria-pressed={draft.color === c} onClick={() => setDraft({ ...draft, color: c })}
@@ -186,7 +186,7 @@ export function StickyBoard({ crits, positions, onMove, onAgree, onAdd, wide, hi
           // Ghost follows the mouse: the pin's tip is the exact spot the crit will point at
           <div className="pointer-events-none absolute z-50" style={{ left: `${ghost.x}%`, top: `${ghost.y}%`, ...ON_CANVAS }}>
             <AddPin />
-            <span className="mt-1 block whitespace-nowrap border-2 border-ink bg-paper px-1.5 py-0.5 font-pixel text-[10px]">CLICK THE SPOT · ESC TO CANCEL</span>
+            <span className="mt-1 block whitespace-nowrap border-2 border-ink bg-paper px-1.5 py-0.5 font-pixel text-micro">CLICK THE SPOT · ESC TO CANCEL</span>
           </div>
         )}
       </div>
