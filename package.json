@@ -4,6 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "tokens": "node scripts/build-tokens.mjs",
+    "tokens:check": "node scripts/check-tokens.mjs",
     "predev": "node scripts/sync-days.mjs",
     "dev": "vite",
     "prebuild": "node scripts/sync-days.mjs",

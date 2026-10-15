@@ -1,0 +1,33 @@
+/* Load intro (inspired by niccolomiranda.com): a small portrait poster slides up, holds,
+   then flips 90deg and zooms until its pink becomes the hero. --cover is set in JS. */
+.intro { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: var(--color-ink); overflow: hidden; cursor: pointer; }
+.intro-card { width: 240px; aspect-ratio: 3 / 4; animation: intro-card 2.6s cubic-bezier(.7, 0, .2, 1) both; }
+@keyframes intro-card {
+  0%   { translate: 0 75vh; rotate: 6deg; scale: 1 }
+  32%  { translate: 0 0;    rotate: -2deg; scale: 1 }
+  42%  { rotate: 1.5deg }
+  52%  { rotate: 0deg; scale: 1 }
+  100% { translate: 0 0; rotate: -90deg; scale: var(--cover, 8) }
+}
+.intro-card-inner { transition: opacity .2s; }
+.intro.zooming .intro-card-inner { opacity: 0; transition-delay: .55s; }
+.intro.leaving { animation: intro-out .35s ease-out forwards; }
+@keyframes intro-out { to { opacity: 0; visibility: hidden } }
+
+/* hero entrance right after the intro */
+.hero-in .hero-line { animation: hero-line .6s cubic-bezier(.2, .9, .3, 1.2) both; }
+.hero-in .hero-line:nth-child(2) { animation-delay: .08s }
+.hero-in .hero-line:nth-child(3) { animation-delay: .16s }
+@keyframes hero-line { from { opacity: 0; translate: 0 40px; rotate: -2deg } }
+.hero-in .hero-design { animation: hero-design .7s cubic-bezier(.2, .9, .3, 1.15) .2s both; }
+@keyframes hero-design { from { opacity: 0; translate: 0 60px; rotate: 6deg; scale: .92 } }
+.hero-in .hero-design > div:not(.win) { animation: slap .45s cubic-bezier(.3, 1.6, .5, 1) both; }
+.hero-in .hero-design > div:nth-of-type(2) { animation-delay: .65s }
+.hero-in .hero-design > div:nth-of-type(3) { animation-delay: .8s }
+.hero-in .hero-design > div:nth-of-type(4) { animation-delay: .95s }
+@keyframes slap { from { opacity: 0; scale: 1.6 } }
+
+@media (prefers-reduced-motion: reduce) {
+  .intro { display: none; }
+  .hero-in .hero-line, .hero-in .hero-design, .hero-in .hero-design > div { animation: none !important; }
+}

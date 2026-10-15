@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useState, type HTMLAttributes, type ReactNode } from 'react'
-import { NavLink, Link } from 'react-router-dom'
+import { NavLink, Link, useLocation } from 'react-router-dom'
 import { TODAY } from '../data/days'
 import { copyText } from '../lib/store'
 import { useProfile } from '../lib/profile'
@@ -114,6 +114,8 @@ export function CopyButton({ text, label, done = 'Copied', className = 'btn btn-
 }
 
 export function PrototypeNote() {
+  // the landing draws its own footer (which includes this note)
+  if (useLocation().pathname === '/') return null
   return (
     <p className="text-center text-[13px] text-muted">
       Prototype v1 · sample content is marked "sample" · anything you add is saved on this device only

@@ -18,6 +18,8 @@ function ScrollTop() {
 function Main({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
   const editor = pathname === '/today' || pathname.startsWith('/day/')
+  // the landing is a full-bleed poster: no grid, no max width
+  if (pathname === '/') return <main className="min-w-0">{children}</main>
   return <main className={editor ? 'grid gap-12 pb-8' : 'mx-auto grid max-w-7xl gap-12 px-4 py-8 sm:py-10'}>{children}</main>
 }
 

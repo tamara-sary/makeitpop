@@ -1,19 +1,8 @@
 @import "tailwindcss";
 
-/* Make It Pop — D · Pop Desk, Bubblegum cream */
-@theme {
-  --color-ink: #161616;
-  --color-cream: #fff6e5;
-  --color-desk: #fffcf6; /* page background: lighter cream, no texture */
-  --color-pink: #ff7ac6;
-  --color-sun: #ffe14d;
-  --color-mint: #8fe3c1;
-  --color-paper: #ffffff;
-  --color-muted: #5e5850;
-  --font-display: "Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
-  --font-sans: "Figtree", system-ui, -apple-system, sans-serif;
-  --font-pixel: "Silkscreen", ui-monospace, monospace;
-}
+/* Make It Pop: D · Pop Desk, Bubblegum cream.
+   Tokens live in tokens/tokens.json -> `npm run tokens` generates the two files below. */
+@import "./styles/tokens.theme.css";
 
 html { background: var(--color-desk); }
 body {
