@@ -1,15 +1,10 @@
 {
   "name": "Make It Pop tokens",
-  "id": "make-it-pop-tokens",
+  "id": "1561021712004441990",
   "api": "1.0.0",
   "main": "code.js",
   "editorType": [
     "figma"
   ],
-  "documentAccess": "dynamic-page",
-  "networkAccess": {
-    "allowedDomains": [
-      "none"
-    ]
-  }
+  "documentAccess": "dynamic-page"
 }

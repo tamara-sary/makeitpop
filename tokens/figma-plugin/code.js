@@ -39,7 +39,79 @@ for (const t of TOKENS) {
   // Semantic variables show up in pickers; primitives are hidden from fills so designers pick by meaning
   if (t.collection === 'Primitives') v.hiddenFromPublishing = true;
 }
-figma.notify('Make It Pop tokens: ' + created + ' created, ' + updated + ' updated');
+// Draw a token board on the current page so the variables are visible without opening any panel.
+// Every swatch / sample is BOUND to its variable: select one and the Fill shows the variable name.
+await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+await figma.loadFontAsync({ family: 'Inter', style: 'Bold' });
+const oldBoard = figma.currentPage.findOne((n) => n.name === 'Make It Pop tokens' && n.type === 'FRAME');
+let boardX = 0;
+let boardY = 0;
+if (oldBoard) { boardX = oldBoard.x; boardY = oldBoard.y; oldBoard.remove(); } else {
+  for (const n of figma.currentPage.children) { if (n.x + n.width + 200 > boardX) { boardX = n.x + n.width + 200; } }
+}
+function txt(chars, size, bold) {
+  const t = figma.createText();
+  t.fontName = { family: 'Inter', style: bold ? 'Bold' : 'Regular' };
+  t.characters = chars;
+  t.fontSize = size;
+  return t;
+}
+function autoFrame(name, dir, gap) {
+  const f = figma.createFrame();
+  f.name = name;
+  f.layoutMode = dir;
+  f.itemSpacing = gap;
+  f.primaryAxisSizingMode = 'AUTO';
+  f.counterAxisSizingMode = 'AUTO';
+  f.fills = [];
+  return f;
+}
+const board = autoFrame('Make It Pop tokens', 'VERTICAL', 32);
+board.x = boardX;
+board.y = boardY;
+board.paddingTop = 48; board.paddingBottom = 48; board.paddingLeft = 48; board.paddingRight = 48;
+board.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
+board.appendChild(txt('Make It Pop tokens', 40, true));
+board.appendChild(txt('Generated from tokens/tokens.json. Semantic tokens, each bound to its Figma variable.', 16, false));
+
+board.appendChild(txt('Colour', 24, true));
+const grid = figma.createFrame();
+grid.name = 'Colours';
+grid.layoutMode = 'HORIZONTAL';
+grid.layoutWrap = 'WRAP';
+grid.itemSpacing = 16;
+grid.counterAxisSpacing = 24;
+grid.resize(1100, 100);
+grid.primaryAxisSizingMode = 'FIXED';
+grid.counterAxisSizingMode = 'AUTO';
+grid.fills = [];
+board.appendChild(grid);
+for (const t of TOKENS) {
+  if (t.collection !== 'Semantic' || t.type !== 'COLOR') continue;
+  const card = autoFrame(t.name, 'VERTICAL', 6);
+  const sw = figma.createRectangle();
+  sw.resize(160, 72);
+  sw.cornerRadius = 4;
+  sw.strokes = [{ type: 'SOLID', color: { r: 0.09, g: 0.09, b: 0.09 } }];
+  sw.strokeWeight = 2;
+  sw.fills = [figma.variables.setBoundVariableForPaint({ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }, 'color', vars['Semantic:' + t.name])];
+  card.appendChild(sw);
+  card.appendChild(txt(t.name.replace('color/', ''), 14, true));
+  card.appendChild(txt('-> ' + (t.alias || ''), 11, false));
+  grid.appendChild(card);
+}
+
+board.appendChild(txt('Type scale', 24, true));
+for (const t of TOKENS) {
+  if (t.collection !== 'Semantic' || t.type !== 'FLOAT') continue;
+  const sample = txt(t.name.replace('text/', '') + '   The quick brown fox', 16, false);
+  try { sample.setBoundVariable('fontSize', vars['Semantic:' + t.name]); } catch (e) { console.log('fontSize binding skipped', e); }
+  board.appendChild(sample);
+}
+figma.currentPage.selection = [board];
+figma.viewport.scrollAndZoomIntoView([board]);
+
+figma.notify('Make It Pop tokens: ' + created + ' created, ' + updated + ' updated. Board drawn.');
 console.log('Done. Created ' + created + ', updated ' + updated + '.');
 
   } catch (e) {
