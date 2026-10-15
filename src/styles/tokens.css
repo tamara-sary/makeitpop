@@ -82,4 +82,25 @@
   --shadow-pop-sm: 3px 3px 0 var(--color-ink);
   --shadow-pop-md: 4px 4px 0 var(--color-ink);
   --shadow-pop-lg: 6px 6px 0 var(--color-ink);
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+  --space-64: 64px;
+  --space-80: 80px;
+  --space-96: 96px;
+  --radius-none: 0px; /* Brand components: no rounded corners */
+  --radius-chrome: 6px; /* Editor chrome: toolbar buttons, segmented control */
+  --radius-chrome-lg: 8px; /* Editor chrome: toolbar group, canvas cards */
+  --radius-pill: 9999px; /* Fully rounded: zoom control, round icon buttons */
+  --border-brand: 2px; /* Ink outline on brand components (buttons, windows, stickies, chips) */
+  --border-chrome: 1px; /* Hairline on editor chrome */
 }

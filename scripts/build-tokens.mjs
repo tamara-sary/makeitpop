@@ -47,6 +47,13 @@ writeFileSync(new URL('../src/styles/tokens.theme.css', import.meta.url),
 // Colors, sizes and font families become Variables. Shadows stay code-only (Figma uses Effect styles for those).
 const figmaType = { color: 'COLOR', dimension: 'FLOAT', fontFamily: 'STRING' }
 const figmaName = (path) => path.slice(1).join('/') // drop the tier: color/ink/900
+// Where each variable may be picked in Figma. Primitives are hidden; semantic tokens only show up where they make sense.
+const figmaScopes = (path) => {
+  const [tier, group] = path
+  if (tier === 'primitive') return []
+  return { color: ['FRAME_FILL', 'SHAPE_FILL', 'TEXT_FILL', 'STROKE_COLOR'], text: ['FONT_SIZE'], font: ['FONT_FAMILY'],
+    space: ['GAP'], radius: ['CORNER_RADIUS'], border: ['STROKE_FLOAT'] }[group] ?? []
+}
 const figmaTokens = tokens.filter((t) => figmaType[t.type]).map((t) => {
   const a = aliasOf(t.value)
   let value = t.value
@@ -59,6 +66,8 @@ const figmaTokens = tokens.filter((t) => figmaType[t.type]).map((t) => {
     value: a ? null : value,
     alias: a ? figmaName(a.split('.')) : null,
     description: t.description ?? '',
+    scopes: figmaScopes(t.path),
+    css: t.path[0] === 'primitive' ? null : `var(${cssName(t.path)})`,
   }
 })
 
@@ -103,6 +112,8 @@ for (const t of TOKENS) {
   }
   // Semantic variables show up in pickers; primitives are hidden from fills so designers pick by meaning
   if (t.collection === 'Primitives') v.hiddenFromPublishing = true;
+  v.scopes = t.scopes;
+  if (t.css) v.setVariableCodeSyntax('WEB', t.css);
 }
 // Draw a token board on the current page so the variables are visible without opening any panel.
 // Every swatch / sample is BOUND to its variable: select one and the Fill shows the variable name.

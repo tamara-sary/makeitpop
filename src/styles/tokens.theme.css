@@ -42,4 +42,25 @@
   --shadow-pop-sm: var(--shadow-pop-sm);
   --shadow-pop-md: var(--shadow-pop-md);
   --shadow-pop-lg: var(--shadow-pop-lg);
+  --space-2: var(--space-2);
+  --space-4: var(--space-4);
+  --space-6: var(--space-6);
+  --space-8: var(--space-8);
+  --space-10: var(--space-10);
+  --space-12: var(--space-12);
+  --space-16: var(--space-16);
+  --space-20: var(--space-20);
+  --space-24: var(--space-24);
+  --space-32: var(--space-32);
+  --space-40: var(--space-40);
+  --space-48: var(--space-48);
+  --space-64: var(--space-64);
+  --space-80: var(--space-80);
+  --space-96: var(--space-96);
+  --radius-none: var(--radius-none);
+  --radius-chrome: var(--radius-chrome);
+  --radius-chrome-lg: var(--radius-chrome-lg);
+  --radius-pill: var(--radius-pill);
+  --border-brand: var(--border-brand);
+  --border-chrome: var(--border-chrome);
 }
