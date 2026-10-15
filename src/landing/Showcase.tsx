@@ -52,7 +52,7 @@ function Tile({ bg, title, children, desc }: { bg: string; title: string; desc: 
     <article className="grid content-start gap-4">
       <div className={'relative h-[260px] overflow-hidden border-2 border-ink shadow-pop-md ' + bg} aria-hidden="true">{children}</div>
       <div>
-        <h3 className="font-display text-title-sm font-extrabold">{title}</h3>
+        <h3 className="font-display text-title-sm font-extrabold leading-tight">{title}</h3>
         <p className="mt-1.5 text-body text-ink">{desc}</p>
       </div>
     </article>
@@ -161,7 +161,7 @@ export default function Showcase() {
         <ul className="mt-16 grid list-none gap-x-6 p-0 sm:grid-cols-2 lg:grid-cols-3">
           {CATALOGUE.map((f) => (
             <li key={f.t} className="border-t-2 border-ink py-5">
-              <h3 className="font-display text-lead font-extrabold">{f.t}</h3>
+              <h3 className="font-display text-lead font-extrabold leading-tight">{f.t}</h3>
               <p className="mt-1 text-body-sm text-ink">{f.d}</p>
             </li>
           ))}

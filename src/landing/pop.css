@@ -57,6 +57,6 @@
 }
 }
 
-/* index.css resets h1-h4/p margins OUTSIDE any layer, which silently beats Tailwind's margin utilities.
+/* index.css sets h1-h4/p margins + h1-h4 line-height/tracking OUTSIDE any layer, which silently beats Tailwind's margin utilities.
    Inside the landing, hand margins back to the utility layer. */
-.landing :is(h1, h2, h3, h4, p) { margin: revert-layer; }
+.landing :is(h1, h2, h3, h4, p) { margin: revert-layer; line-height: revert-layer; letter-spacing: revert-layer; }
