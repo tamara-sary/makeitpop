@@ -114,8 +114,8 @@ export function CopyButton({ text, label, done = 'Copied', className = 'btn btn-
 }
 
 export function PrototypeNote() {
-  // the landing lab draws its own footer (which includes this note)
-  if (useLocation().pathname.startsWith('/lab')) return null
+  // the landing draws its own footer (which includes this note)
+  if (useLocation().pathname === '/') return null
   return (
     <p className="text-center text-[13px] text-muted">
       Prototype v1 · sample content is marked "sample" · anything you add is saved on this device only

@@ -1,4 +1,4 @@
-/* Landing lab: pop-art layer on top of the Make It Pop tokens.
+/* Landing: pop-art layer on top of the Make It Pop tokens.
    Halftone = Ben-Day dots (the comic print texture), always drawn in ink at low opacity over a flat pop colour. */
 
 @layer components {
@@ -58,5 +58,5 @@
 }
 
 /* index.css resets h1-h4/p margins OUTSIDE any layer, which silently beats Tailwind's margin utilities.
-   Inside the lab, hand margins back to the utility layer. */
-.lab :is(h1, h2, h3, h4, p) { margin: revert-layer; }
+   Inside the landing, hand margins back to the utility layer. */
+.landing :is(h1, h2, h3, h4, p) { margin: revert-layer; }

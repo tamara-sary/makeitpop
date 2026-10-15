@@ -15,14 +15,14 @@
   --p-color-white: #ffffff;
   --p-color-pink-300: #ff9fd4;
   --p-color-pink-400: #ff7ac6;
-  --p-color-pink-500: #ff5ea8;
+  --p-color-pink-500: #ff7ac6;
   --p-color-sun-400: #ffe14d;
-  --p-color-sun-500: #ffd23f;
+  --p-color-sun-500: #ffe14d;
   --p-color-mint-300: #8fe3c1;
-  --p-color-mint-500: #3fdc9a;
+  --p-color-mint-500: #6fe3b5;
   --p-color-sky-300: #a9d8ff;
   --p-color-blue-500: #3b6ef5;
-  --p-color-blue-600: #7aa2ff;
+  --p-color-blue-600: #8fb4ff;
   --p-color-leaf-700: #56633c;
   --p-size-10: 10px;
   --p-size-11: 11px;
@@ -64,10 +64,10 @@
   --color-canvas-dot: var(--p-color-warm-300); /* Canvas dot grid */
   --color-canvas-section: var(--p-color-warm-150); /* Neutral canvas section fill */
   --color-canvas-section-border: var(--p-color-warm-400);
-  --color-pop-pink: var(--p-color-pink-500); /* Landing fields. Ink text only (6.4:1) */
-  --color-pop-sun: var(--p-color-sun-500); /* Landing fields + CTA text on ink. Ink text (12.5:1) */
-  --color-pop-blue: var(--p-color-blue-600); /* Landing fields. Ink text only (7.3:1); never white text */
-  --color-pop-mint: var(--p-color-mint-500); /* Landing fields. Ink text only (10.3:1) */
+  --color-pop-pink: var(--p-color-pink-500); /* Landing fields (Bubblegum). Ink text only (7.6:1) */
+  --color-pop-sun: var(--p-color-sun-500); /* Landing fields + CTA text on ink (Bubblegum). Ink text (13.9:1) */
+  --color-pop-blue: var(--p-color-blue-600); /* Landing fields (Bubblegum). Ink text only (8.7:1); never white text */
+  --color-pop-mint: var(--p-color-mint-500); /* Landing fields (Bubblegum). Ink text only (11.5:1) */
   --text-micro: var(--p-size-11);
   --text-caption: var(--p-size-12);
   --text-ui: var(--p-size-13);

@@ -6,7 +6,7 @@ import { useIntro } from './Intro'
 export default function LandingA() {
   const intro = useIntro()
   return (
-    <div className={'lab overflow-x-clip ' + (intro.heroIn ? 'hero-in' : '')}>
+    <div className={'landing overflow-x-clip ' + (intro.heroIn ? 'hero-in' : '')}>
       {intro.overlay}
       <section className="relative border-b-2 border-ink bg-pop-pink">
         <div className="halftone halftone-hero pointer-events-none absolute inset-0" style={{ ['--dot-size' as string]: '13px', ['--dot-alpha' as string]: '22%' }} />
