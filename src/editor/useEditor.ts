@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
+import { track } from '../lib/analytics'
 import { load, save } from '../lib/store'
 import { applyEdit, elAt, pathOf, type Edit } from './model'
 
@@ -30,6 +31,7 @@ export function useEditor(day: number) {
     applyEdit(d, e)
     redo.current = []
     commit([...list.current, e])
+    track('remix_edit', { kind: e.kind, by: e.by ?? 'human', count: list.current.length })
     return true
   }, [commit])
 

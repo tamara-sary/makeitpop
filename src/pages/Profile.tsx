@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { track } from '../lib/analytics'
 import { Link } from 'react-router-dom'
 import { DAYS, TODAY, type Crit } from '../data/days'
 import { load, save } from '../lib/store'
@@ -24,7 +25,7 @@ function Join({ onJoin }: { onJoin: (p: P) => void }) {
         <h1 className="text-4xl sm:text-5xl">Make your profile</h1>
         <p className="text-[17px]">Your stickies and remixes in one place, so you can see how your eye changes over 30 days.</p>
       </header>
-      <form className="win grid gap-4 p-5" onSubmit={(e) => { e.preventDefault(); onJoin({ name: name.trim(), level, linkedin: linkedin.trim() || undefined, joined: Date.now() }) }}>
+      <form className="win grid gap-4 p-5" onSubmit={(e) => { e.preventDefault(); track('profile_created', { level }); onJoin({ name: name.trim(), level, linkedin: linkedin.trim() || undefined, joined: Date.now() }) }}>
         <label className="grid gap-1.5">
           <span className="font-semibold">Your name</span>
           <input className="field" required minLength={2} autoComplete="given-name" value={name} onChange={(e) => setName(e.target.value)} />

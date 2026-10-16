@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { track } from '../lib/analytics'
 import { REPO, type Crit, type Day } from '../data/days'
 import { CopyButton, useToast } from './ui'
 import { DropShot } from './DropShot'
@@ -30,11 +31,11 @@ export function RemixSteps({ day, topCrit, locked }: { day: Day; topCrit?: Crit;
             <strong>Grab the design</strong>
             <div className="flex flex-wrap gap-2">
               {day.figmaUrl ? (
-                <a className="btn btn-sm" href={day.figmaUrl} target="_blank" rel="noreferrer" aria-describedby="figma-dup">Get your copy ↗</a>
+                <a className="btn btn-sm" href={day.figmaUrl} target="_blank" rel="noreferrer" aria-describedby="figma-dup" onClick={() => track('figma_copy_clicked', { day: day.n })}>Get your copy ↗</a>
               ) : (
                 <button className="btn btn-sm" type="button" aria-describedby="figma-dup" onClick={() => toast(`Day ${day.n} Figma file is coming soon`)}>Get your copy ↗</button>
               )}
-              <button className="btn btn-ghost btn-sm" type="button" aria-expanded={showCode} onClick={() => setShowCode((v) => !v)}>Code</button>
+              <button className="btn btn-ghost btn-sm" type="button" aria-expanded={showCode} onClick={() => { if (!showCode) track('code_kit_opened', { day: day.n }); setShowCode((v) => !v) }}>Code</button>
             </div>
             {/* A shared Figma link opens the original, view-only: people must duplicate it before they can edit */}
             <p id="figma-dup" className="text-[14px] leading-snug">
@@ -80,7 +81,7 @@ export function ShareStep({ day }: { day: Day }) {
         <strong className="font-display text-[22px]">Post it on LinkedIn</strong>
         <p className="text-[16px]">Caption with credit, ready to paste. Add the 3 things you changed.</p>
         <pre className="m-0 whitespace-pre-wrap border-2 border-ink bg-paper p-3 font-sans text-[13px] leading-snug">{caption}</pre>
-        <div><CopyButton text={caption} label="Copy caption" /></div>
+        <div onClick={() => track('caption_copied', { day: day.n })}><CopyButton text={caption} label="Copy caption" /></div>
       </div>
       <p className="text-[14px] text-muted">Free to remix. Just credit Make It Pop when you post.</p>
     </div>

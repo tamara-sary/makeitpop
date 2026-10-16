@@ -1,4 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { initAnalytics } from './lib/analytics'
+import { ConsentCard } from './components/ConsentCard'
 import { useEffect, type ReactNode } from 'react'
 import { MenuBar, PrototypeNote, ToastProvider } from './components/ui'
 import { installClickSounds } from './lib/sound'
@@ -26,6 +28,7 @@ function Main({ children }: { children: ReactNode }) {
 
 export default function App() {
   useEffect(() => installClickSounds(), [])
+  useEffect(() => initAnalytics(), [])
   return (
     <BrowserRouter>
       <ToastProvider>
@@ -47,6 +50,7 @@ export default function App() {
       </ToastProvider>
       {/* Vercel Web Analytics: cookieless page views (no consent banner needed) */}
       <Analytics />
+      <ConsentCard />
     </BrowserRouter>
   )
 }
