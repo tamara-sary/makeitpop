@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 import { useEffect, type ReactNode } from 'react'
 import { MenuBar, PrototypeNote, ToastProvider } from './components/ui'
 import { installClickSounds } from './lib/sound'
+import { Analytics } from '@vercel/analytics/react'
 import DayPage from './pages/DayPage'
 import Archive from './pages/Archive'
 import SteamRoom from './pages/SteamRoom'
@@ -44,6 +45,8 @@ export default function App() {
           <PrototypeNote />
         </Main>
       </ToastProvider>
+      {/* Vercel Web Analytics: cookieless page views (no consent banner needed) */}
+      <Analytics />
     </BrowserRouter>
   )
 }
