@@ -1,4 +1,7 @@
-// Google bounces back here with ?code=... — trade it for a session, then continue to /me.
+// Where Google (or a magic-link email click) bounces back. Handles both shapes:
+//  - ?code=...            → PKCE exchange (Google OAuth)
+//  - #access_token=...    → magic link / implicit tokens → setSession
+//  - #error_description=  → expired/used link, shown in a friendly window
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Win } from '../components/ui'
@@ -6,26 +9,48 @@ import { supabase } from '../lib/supabase'
 
 export default function AuthCallback() {
   const nav = useNavigate()
-  const code = new URLSearchParams(window.location.search).get('code')
   const [failed, setFailed] = useState<string | null>(null)
   // Derived during render so the effect never sets state synchronously.
-  const setupError = !supabase
-    ? 'Sign-in is not configured yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY (see .env.example).'
-    : !code
-      ? 'No sign-in code in the URL. Go back and try again.'
-      : null
-  const error = failed ?? setupError
+  const configError = supabase
+    ? null
+    : 'Sign-in is not configured yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY (see .env.example).'
+  const error = failed ?? configError
 
   useEffect(() => {
-    if (!supabase || !code) return
+    const sb = supabase
+    if (!sb || configError) return
     let live = true
-    supabase.auth.exchangeCodeForSession(code).then(({ error: e }) => {
-      if (!live) return
-      if (e) setFailed(e.message)
-      else nav('/me', { replace: true })
-    })
+    const params = new URLSearchParams(window.location.search)
+    const hash = new URLSearchParams(window.location.hash.slice(1))
+
+    const run = async () => {
+      const hashError = params.get('error_description') ?? hash.get('error_description')
+      if (hashError) {
+        if (live) setFailed(hashError + ' Send yourself a new link.')
+        return
+      }
+      const code = params.get('code')
+      if (code) {
+        const { error: e } = await sb.auth.exchangeCodeForSession(code)
+        if (!live) return
+        if (e) setFailed(e.message)
+        else nav('/me', { replace: true })
+        return
+      }
+      const access_token = hash.get('access_token')
+      const refresh_token = hash.get('refresh_token')
+      if (access_token && refresh_token) {
+        const { error: e } = await sb.auth.setSession({ access_token, refresh_token })
+        if (!live) return
+        if (e) setFailed(e.message)
+        else nav('/me', { replace: true })
+        return
+      }
+      if (live) setFailed('This sign-in link has no code in it. Go back and send yourself a new one.')
+    }
+    void run()
     return () => { live = false }
-  }, [nav, code])
+  }, [nav, configError])
 
   return (
     <div className="mx-auto grid w-full max-w-md gap-4 pt-6">
@@ -36,7 +61,7 @@ export default function AuthCallback() {
             <button type="button" className="btn w-fit" onClick={() => nav('/me', { replace: true })}>Back to profile</button>
           </div>
         ) : (
-          <p role="status">Trading handshakes with Google…</p>
+          <p role="status">Opening your profile…</p>
         )}
       </Win>
     </div>

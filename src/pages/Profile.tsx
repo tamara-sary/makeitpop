@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { track } from '../lib/analytics'
 import { Link } from 'react-router-dom'
@@ -23,10 +23,34 @@ export default function Profile() {
 }
 
 function SignInWindow() {
-  const { signInWithGoogle } = useAuth()
+  const { signInWithGoogle, sendMagicLink } = useAuth()
+  const [email, setEmail] = useState('')
   const [busy, setBusy] = useState(false)
+  const [sentTo, setSentTo] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
-  const go = async () => {
+  // Google needs a card-verified Google Cloud account; flip this on in .env when available.
+  const googleEnabled = import.meta.env.VITE_ENABLE_GOOGLE === 'true'
+
+  const send = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!isSupabaseConfigured) {
+      setErr('Sign-in is not configured yet — add the Supabase env vars from .env.example, then rebuild.')
+      return
+    }
+    setBusy(true)
+    setErr(null)
+    try {
+      await sendMagicLink(email)
+      track('magic_link_sent')
+      setSentTo(email.trim())
+    } catch (e2) {
+      setErr(e2 instanceof Error ? e2.message : 'Could not send the link. Try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const google = async () => {
     if (!isSupabaseConfigured) {
       setErr('Sign-in is not configured yet — add the Supabase env vars from .env.example, then rebuild.')
       return
@@ -42,16 +66,37 @@ function SignInWindow() {
       setBusy(false)
     }
   }
+
   return (
     <div className="mx-auto grid w-full max-w-xl gap-6">
       <header className="grid gap-2">
         <h1 className="text-4xl sm:text-5xl">Your profile, one click away</h1>
-        <p className="text-lead">Sign in with Google and your profile opens: your stickies and remixes, day by day.</p>
+        <p className="text-lead">Pop in your email — we'll send a magic link. Click it and your profile opens.</p>
       </header>
       <div className="win grid gap-4 p-5">
-        <button type="button" className="btn w-fit" disabled={busy} aria-busy={busy} onClick={() => void go()}>
-          <span className="inline-flex items-center gap-2"><GoogleG />{busy ? 'Opening Google…' : 'Continue with Google'}</span>
-        </button>
+        {sentTo ? (
+          <>
+            <p role="status"><strong>Check your inbox 📬</strong><br />We sent a magic link to {sentTo}.</p>
+            <p className="text-ui text-muted">Open it in this browser and you're in. Nothing arrived after a minute? Check spam, or send another below.</p>
+            <button type="button" className="btn btn-ghost btn-sm w-fit" onClick={() => setSentTo(null)}>Use a different email</button>
+          </>
+        ) : (
+          <form className="grid gap-3" onSubmit={(e) => void send(e)}>
+            <label className="grid gap-1.5">
+              <span className="font-semibold">Email</span>
+              <input className="field" type="email" required autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </label>
+            <button type="submit" className="btn w-fit" disabled={busy} aria-busy={busy}>{busy ? 'Sending…' : 'Send me a magic link'}</button>
+          </form>
+        )}
+        {googleEnabled && !sentTo && (
+          <>
+            <p className="text-center text-ui text-muted">or</p>
+            <button type="button" className="btn btn-ghost w-fit" disabled={busy} aria-busy={busy} onClick={() => void google()}>
+              <span className="inline-flex items-center gap-2"><GoogleG />Continue with Google</span>
+            </button>
+          </>
+        )}
         {err && <p role="alert" className="text-ui">{err}</p>}
         <p className="text-ui text-muted">Signing in tells us who you are. Your stickies, agrees and remix shots still save in this browser only.</p>
       </div>

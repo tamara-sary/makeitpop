@@ -27,7 +27,8 @@ npm run dev        # http://localhost:5173
 - **Code kit repo name:** `REPO` in `src/data/days.ts`
 
 ## Prototype limits (on purpose)
-- Google sign-in (`/me`) needs a Supabase project + Google OAuth credentials — see `.env.example`. Without them, `/me` shows setup instructions instead.
+- Sign-in (`/me`) needs a Supabase project — email magic link by default, **no card required**. Without env vars, `/me` shows setup instructions instead.
+- "Continue with Google" is optional behind `VITE_ENABLE_GOOGLE` (needs Google Cloud OAuth credentials; see `.env.example`).
 - Everything else stays in this browser (localStorage): crits, rants, agrees and smash count.
 - Sample content is labelled SAMPLE.
 - "Open in Figma" shows a toast until a real `figmaUrl` is set.
