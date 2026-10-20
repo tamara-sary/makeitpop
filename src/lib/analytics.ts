@@ -46,6 +46,7 @@ export type EventName =
   | 'editor_opened' | 'remix_edit' | 'remix_shot_saved' | 'code_downloaded'
   | 'figma_copy_clicked' | 'code_kit_opened' | 'caption_copied'
   | 'ai_connect_opened' | 'ai_connected' | 'steam_room_opened' | 'profile_created'
+  | 'sign_in_google' | 'magic_link_sent'
 
 export function track(event: EventName, props?: Record<string, string | number | boolean>) {
   if (ready) posthog.capture(event, props)

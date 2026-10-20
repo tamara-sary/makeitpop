@@ -1,22 +1,112 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
+import type { User } from '@supabase/supabase-js'
 import { track } from '../lib/analytics'
 import { Link } from 'react-router-dom'
 import { DAYS, TODAY, type Crit } from '../data/days'
 import { load, save } from '../lib/store'
 import { shotKey, useProfile, type Profile as P, type Shot } from '../lib/profile'
+import { useAuth } from '../lib/auth'
+import { isSupabaseConfigured } from '../lib/supabase'
 import { STICKY_BG } from '../components/Stickies'
+import { GoogleG } from '../components/GoogleG'
 import { useToast } from '../components/ui'
 
 // Your profile: your remixes (shots) and your crits across all days.
-// Prototype: "joining" just names you in this browser. Nobody else sees any of it yet.
+// Sign-in is Google via Supabase; level/linkedin and the shots + stickies still live in this browser.
 export default function Profile() {
+  const { loading, user } = useAuth()
   const [profile, setProfile] = useProfile()
-  if (!profile) return <Join onJoin={setProfile} />
-  return <Dashboard profile={profile} onLeave={() => setProfile(null)} />
+  if (loading) return <p role="status" className="mx-auto w-full max-w-xl pt-8 text-body text-muted">Checking your session…</p>
+  if (!user) return <SignInWindow />
+  if (!profile) return <Join user={user} onJoin={setProfile} />
+  return <Dashboard profile={profile} user={user} onLeave={() => setProfile(null)} />
 }
 
-function Join({ onJoin }: { onJoin: (p: P) => void }) {
-  const [name, setName] = useState('')
+function SignInWindow() {
+  const { signInWithGoogle, sendMagicLink } = useAuth()
+  const [email, setEmail] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [sentTo, setSentTo] = useState<string | null>(null)
+  const [err, setErr] = useState<string | null>(null)
+  // Google needs a card-verified Google Cloud account; flip this on in .env when available.
+  const googleEnabled = import.meta.env.VITE_ENABLE_GOOGLE === 'true'
+
+  const send = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!isSupabaseConfigured) {
+      setErr('Sign-in is not configured yet — add the Supabase env vars from .env.example, then rebuild.')
+      return
+    }
+    setBusy(true)
+    setErr(null)
+    try {
+      await sendMagicLink(email)
+      track('magic_link_sent')
+      setSentTo(email.trim())
+    } catch (e2) {
+      setErr(e2 instanceof Error ? e2.message : 'Could not send the link. Try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const google = async () => {
+    if (!isSupabaseConfigured) {
+      setErr('Sign-in is not configured yet — add the Supabase env vars from .env.example, then rebuild.')
+      return
+    }
+    setBusy(true)
+    setErr(null)
+    try {
+      track('sign_in_google')
+      await signInWithGoogle()
+      // success: the page navigates away to Google
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not reach Google. Try again.')
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="mx-auto grid w-full max-w-xl gap-6">
+      <header className="grid gap-2">
+        <h1 className="text-4xl sm:text-5xl">Your profile, one click away</h1>
+        <p className="text-lead">Pop in your email — we'll send a magic link. Click it and your profile opens.</p>
+      </header>
+      <div className="win grid gap-4 p-5">
+        {sentTo ? (
+          <>
+            <p role="status"><strong>Check your inbox 📬</strong><br />We sent a magic link to {sentTo}.</p>
+            <p className="text-ui text-muted">Open it in this browser and you're in. Nothing arrived after a minute? Check spam, or send another below.</p>
+            <button type="button" className="btn btn-ghost btn-sm w-fit" onClick={() => setSentTo(null)}>Use a different email</button>
+          </>
+        ) : (
+          <form className="grid gap-3" onSubmit={(e) => void send(e)}>
+            <label className="grid gap-1.5">
+              <span className="font-semibold">Email</span>
+              <input className="field" type="email" required autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </label>
+            <button type="submit" className="btn w-fit" disabled={busy} aria-busy={busy}>{busy ? 'Sending…' : 'Send me a magic link'}</button>
+          </form>
+        )}
+        {googleEnabled && !sentTo && (
+          <>
+            <p className="text-center text-ui text-muted">or</p>
+            <button type="button" className="btn btn-ghost w-fit" disabled={busy} aria-busy={busy} onClick={() => void google()}>
+              <span className="inline-flex items-center gap-2"><GoogleG />Continue with Google</span>
+            </button>
+          </>
+        )}
+        {err && <p role="alert" className="text-ui">{err}</p>}
+        <p className="text-ui text-muted">Signing in tells us who you are. Your stickies, agrees and remix shots still save in this browser only.</p>
+      </div>
+    </div>
+  )
+}
+
+function Join({ user, onJoin }: { user: User; onJoin: (p: P) => void }) {
+  const meta = (user.user_metadata ?? {}) as { full_name?: string; name?: string; avatar_url?: string }
+  const [name, setName] = useState(meta.full_name || meta.name || '')
   const [level, setLevel] = useState<P['level']>('Mid')
   const [linkedin, setLinkedin] = useState('')
   return (
@@ -25,10 +115,14 @@ function Join({ onJoin }: { onJoin: (p: P) => void }) {
         <h1 className="text-4xl sm:text-5xl">Make your profile</h1>
         <p className="text-[17px]">Your stickies and remixes in one place, so you can see how your eye changes over 30 days.</p>
       </header>
+      <div className="flex items-center gap-3 border-2 border-ink bg-paper px-3 py-2">
+        {meta.avatar_url && <img src={meta.avatar_url} alt="" className="h-9 w-9 border-2 border-ink object-cover" />}
+        <p className="text-body-sm"><strong>Signed in as {user.email}</strong><br /><span className="text-muted">via Google</span></p>
+      </div>
       <form className="win grid gap-4 p-5" onSubmit={(e) => { e.preventDefault(); track('profile_created', { level }); onJoin({ name: name.trim(), level, linkedin: linkedin.trim() || undefined, joined: Date.now() }) }}>
         <label className="grid gap-1.5">
-          <span className="font-semibold">Your name</span>
-          <input className="field" required minLength={2} autoComplete="given-name" value={name} onChange={(e) => setName(e.target.value)} />
+          <span className="font-semibold">Your name <span className="font-normal text-muted">(from Google — change it if you like)</span></span>
+          <input className="field" required minLength={2} autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
         </label>
         <fieldset className="m-0 grid gap-1.5 border-0 p-0">
           <legend className="mb-1.5 font-semibold">Level</legend>
@@ -45,14 +139,16 @@ function Join({ onJoin }: { onJoin: (p: P) => void }) {
           <input className="field" type="url" placeholder="https://linkedin.com/in/…" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} />
         </label>
         <button type="submit" className="btn w-fit">Make my profile</button>
-        <p className="text-[13px] text-muted">Prototype: there are no accounts yet. Your profile lives in this browser only. Nobody else can see it.</p>
+        <p className="text-[13px] text-muted">Your Google sign-in is real; level, link and stickies still save in this browser only for now.</p>
       </form>
     </div>
   )
 }
 
-function Dashboard({ profile, onLeave }: { profile: P; onLeave: () => void }) {
+function Dashboard({ profile, user, onLeave }: { profile: P; user: User; onLeave: () => void }) {
   const toast = useToast()
+  const { signOut } = useAuth()
+  const meta = (user.user_metadata ?? {}) as { avatar_url?: string }
   const [tick, setTick] = useState(0) // re-read storage after removing a shot
   const open = DAYS.filter((d) => d.n <= TODAY)
   void tick
@@ -63,9 +159,10 @@ function Dashboard({ profile, onLeave }: { profile: P; onLeave: () => void }) {
     <div className="grid gap-10">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="grid gap-2">
+          {meta.avatar_url && <img src={meta.avatar_url} alt="" className="h-12 w-12 border-2 border-ink object-cover" />}
           <span className="chip w-fit bg-sun">{profile.level} designer</span>
           <h1 className="text-4xl sm:text-5xl">{profile.name}</h1>
-          <p className="text-muted">Joined {new Date(profile.joined).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })} · {crits.length} {crits.length === 1 ? 'sticky' : 'stickies'} · {shots.length} remix{shots.length === 1 ? '' : 'es'}</p>
+          <p className="text-muted">{user.email} · Joined {new Date(profile.joined).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })} · {crits.length} {crits.length === 1 ? 'sticky' : 'stickies'} · {shots.length} remix{shots.length === 1 ? '' : 'es'}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {profile.linkedin && <a className="btn btn-ghost btn-sm" href={profile.linkedin} target="_blank" rel="noreferrer">LinkedIn ↗</a>}
@@ -116,7 +213,7 @@ function Dashboard({ profile, onLeave }: { profile: P; onLeave: () => void }) {
         )}
       </section>
 
-      <button type="button" className="w-fit cursor-pointer border-0 bg-transparent p-0 text-[13px] text-muted underline" onClick={onLeave}>Sign out (forget my name on this browser)</button>
+      <button type="button" className="w-fit cursor-pointer border-0 bg-transparent p-0 text-[13px] text-muted underline" onClick={() => { onLeave(); void signOut() }}>Sign out (ends your Google session on this device)</button>
     </div>
   )
 }

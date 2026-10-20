@@ -4,9 +4,10 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
 const root = new URL('..', import.meta.url).pathname
-// Allowed to hold raw values: the generated token files, and DesignPreview (it draws the sample
+// Allowed to hold raw values: the generated token files, DesignPreview (it draws the sample
 // design members critique, so its colours belong to that design, not to Make It Pop)
-const ALLOW = ['src/styles/tokens.css', 'src/styles/tokens.theme.css', 'src/components/DesignPreview.tsx']
+// and GoogleG (Google's official logo colours are content, like DesignPreview).
+const ALLOW = ['src/styles/tokens.css', 'src/styles/tokens.theme.css', 'src/components/DesignPreview.tsx', 'src/components/GoogleG.tsx']
 
 const files = []
 const walk = (dir) => {
