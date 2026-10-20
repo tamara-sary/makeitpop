@@ -3,8 +3,10 @@ import { initAnalytics } from './lib/analytics'
 import { ConsentCard } from './components/ConsentCard'
 import { useEffect, type ReactNode } from 'react'
 import { MenuBar, PrototypeNote, ToastProvider } from './components/ui'
+import { AuthProvider } from './lib/auth'
 import { installClickSounds } from './lib/sound'
 import { Analytics } from '@vercel/analytics/react'
+import AuthCallback from './pages/AuthCallback'
 import DayPage from './pages/DayPage'
 import Archive from './pages/Archive'
 import SteamRoom from './pages/SteamRoom'
@@ -31,6 +33,7 @@ export default function App() {
   useEffect(() => initAnalytics(), [])
   return (
     <BrowserRouter>
+      <AuthProvider>
       <ToastProvider>
         <ScrollTop />
         <MenuBar />
@@ -42,12 +45,14 @@ export default function App() {
             <Route path="/archive" element={<Archive />} />
             <Route path="/steam-room" element={<SteamRoom />} />
             <Route path="/me" element={<Profile />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/how-it-works" element={<Navigate to="/" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <PrototypeNote />
         </Main>
       </ToastProvider>
+      </AuthProvider>
       {/* Vercel Web Analytics: cookieless page views (no consent banner needed) */}
       <Analytics />
       <ConsentCard />

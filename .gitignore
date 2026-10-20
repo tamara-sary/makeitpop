@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Secrets (Supabase / Google OAuth) never enter git
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

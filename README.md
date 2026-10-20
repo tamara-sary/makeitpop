@@ -17,6 +17,7 @@ npm run dev        # http://localhost:5173
 | `/day/:n` | Any past day |
 | `/archive` | All 30 days by week; future days locked |
 | `/steam-room` | Break-stuff game (canvas) + anonymous rant wall |
+| `/me` | Your profile: sign in with Google, your remixes + stickies in one place |
 | `/how-it-works` | 4 steps + remix rules |
 
 ## Where to edit
@@ -26,7 +27,8 @@ npm run dev        # http://localhost:5173
 - **Code kit repo name:** `REPO` in `src/data/days.ts`
 
 ## Prototype limits (on purpose)
-- No backend: crits, rants, agrees and smash count save in this browser only (localStorage).
+- Google sign-in (`/me`) needs a Supabase project + Google OAuth credentials — see `.env.example`. Without them, `/me` shows setup instructions instead.
+- Everything else stays in this browser (localStorage): crits, rants, agrees and smash count.
 - Sample content is labelled SAMPLE.
 - "Open in Figma" shows a toast until a real `figmaUrl` is set.
 
