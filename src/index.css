@@ -54,7 +54,7 @@ p { margin: 0; }
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     font: 700 15px/1 var(--font-sans);
-    padding: 11px 16px;
+    padding: var(--space-10) var(--space-16);
     border: 2px solid var(--color-ink);
     box-shadow: 3px 3px 0 var(--color-ink);
     background: var(--color-pink); color: var(--color-ink);
@@ -66,7 +66,7 @@ p { margin: 0; }
   .btn-ghost { background: var(--color-paper); }
   .btn-sun { background: var(--color-sun); }
   .btn-mint { background: var(--color-mint); }
-  .btn-sm { font-size: 13px; padding: 7px 11px; }
+  .btn-sm { font-size: 13px; padding: var(--space-6) var(--space-12); }
 
   .tilt { transform: rotate(-2deg); }
   .note {
