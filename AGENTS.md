@@ -5,8 +5,19 @@
 ## Source of truth
 - Tokens live in `tokens/tokens.json` (W3C DTCG format). It is mirrored in Figma Variables
   (collections "Primitives" and "Semantic").
-- `src/styles/tokens.css`, `src/styles/tokens.theme.css` and `tokens/figma-sync.js` are GENERATED.
+- `src/styles/tokens.css`, `src/styles/tokens.theme.css`, `tokens/figma-sync.js`, `tokens/figma-plugin/code.js`
+  and `tokens/figma-mcp-sync.js` are GENERATED.
   Never edit them by hand. Edit tokens.json, then run `npm run tokens`.
+
+## Token sync (code -> Figma)
+- Code owns the values. Figma is a mirror: never change a token value in Figma first.
+- Change a token: edit `tokens/tokens.json` -> `npm run tokens` -> sync the Figma library
+  "Make It Pop · Design System" (file key `29xEu8ptoS1vCNG9Kfdvr9`) by running the contents of
+  `tokens/figma-mcp-sync.js` with the Figma MCP `use_figma` tool. It returns `{ created, updated, unchanged, figmaOnly }`.
+- "Check Figma drift": run the same script with `const DRY = false;` changed to `const DRY = true;` (read-only).
+  Anything in `updated` / `created` = Figma is behind code; `figmaOnly` = variable added in Figma by hand:
+  ask the owner whether to add it to tokens.json or delete it in Figma. The script never deletes.
+- After a sync, the owner publishes the library in Figma (Assets -> Publish) so files using it get the update.
 
 ## Using tokens
 - NEVER write raw hex colours, rgb() or one-off `text-[13px]` sizes in components.
