@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { initAnalytics } from './lib/analytics'
 import { ConsentCard } from './components/ConsentCard'
 import { useEffect, type ReactNode } from 'react'
@@ -12,6 +12,21 @@ import Archive from './pages/Archive'
 import SteamRoom from './pages/SteamRoom'
 import Home from './pages/Home'
 import Profile from './pages/Profile'
+
+// Supabase sends people to the Site URL (often "/") when /auth/callback isn't on its Redirect URLs list.
+// If a sign-in token or error lands on any other page, hand it to the callback instead of dropping it.
+function CatchAuthRedirect() {
+  const { pathname, search, hash } = useLocation()
+  const nav = useNavigate()
+  useEffect(() => {
+    if (pathname === '/auth/callback') return
+    const q = new URLSearchParams(search)
+    if (/(^|[#&])(access_token|error_description)=/.test(hash) || (q.has('code') && pathname === '/')) {
+      nav('/auth/callback' + search + hash, { replace: true })
+    }
+  }, [pathname, search, hash, nav])
+  return null
+}
 
 function ScrollTop() {
   const { pathname } = useLocation()
@@ -35,6 +50,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
       <ToastProvider>
+        <CatchAuthRedirect />
         <ScrollTop />
         <MenuBar />
         <Main>

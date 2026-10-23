@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from './supabase'
+import { save } from './store'
 
 type AuthValue = {
   loading: boolean
@@ -65,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     if (supabase) await supabase.auth.signOut()
+    save('profile', null) // the cached profile belongs to the account that just left
   }
 
   return (
