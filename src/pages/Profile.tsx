@@ -4,7 +4,7 @@ import { track } from '../lib/analytics'
 import { Link } from 'react-router-dom'
 import { DAYS, TODAY, type Crit } from '../data/days'
 import { load, save } from '../lib/store'
-import { shotKey, useProfile, type Profile as P, type Shot } from '../lib/profile'
+import { saveProfile, shotKey, useProfile, useProfileSync, type Profile as P, type Shot } from '../lib/profile'
 import { useAuth } from '../lib/auth'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { STICKY_BG } from '../components/Stickies'
@@ -12,13 +12,15 @@ import { GoogleG } from '../components/GoogleG'
 import { useToast } from '../components/ui'
 
 // Your profile: your remixes (shots) and your crits across all days.
-// Sign-in is Google via Supabase; level/linkedin and the shots + stickies still live in this browser.
+// Flow: magic link → /auth/callback → here → Join (first time, no profile row) → Dashboard.
+// The profile row lives in Supabase; shots + stickies still live in this browser.
 export default function Profile() {
   const { loading, user } = useAuth()
   const [profile, setProfile] = useProfile()
-  if (loading) return <p role="status" className="mx-auto w-full max-w-xl pt-8 text-body text-muted">Checking your session…</p>
+  const sync = useProfileSync(user)
+  if (loading || sync === 'loading') return <p role="status" className="mx-auto w-full max-w-xl pt-8 text-body text-muted">Checking your session…</p>
   if (!user) return <SignInWindow />
-  if (!profile) return <Join user={user} onJoin={setProfile} />
+  if (!profile || (profile.userId && profile.userId !== user.id)) return <Join user={user} onJoin={setProfile} />
   return <Dashboard profile={profile} user={user} onLeave={() => setProfile(null)} />
 }
 
@@ -109,6 +111,23 @@ function Join({ user, onJoin }: { user: User; onJoin: (p: P) => void }) {
   const [name, setName] = useState(meta.full_name || meta.name || '')
   const [level, setLevel] = useState<P['level']>('Mid')
   const [linkedin, setLinkedin] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+  const viaGoogle = user.app_metadata?.provider === 'google'
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault()
+    setBusy(true)
+    setErr(null)
+    try {
+      const saved = await saveProfile(user, { name: name.trim(), level, linkedin: linkedin.trim() || undefined })
+      track('profile_created', { level })
+      onJoin(saved)
+    } catch (e2) {
+      setErr(e2 instanceof Error ? e2.message : 'Could not save your profile. Try again.')
+      setBusy(false)
+    }
+  }
   return (
     <div className="mx-auto grid w-full max-w-xl gap-6">
       <header className="grid gap-2">
@@ -117,11 +136,11 @@ function Join({ user, onJoin }: { user: User; onJoin: (p: P) => void }) {
       </header>
       <div className="flex items-center gap-3 border-2 border-ink bg-paper px-3 py-2">
         {meta.avatar_url && <img src={meta.avatar_url} alt="" className="h-9 w-9 border-2 border-ink object-cover" />}
-        <p className="text-body-sm"><strong>Signed in as {user.email}</strong><br /><span className="text-muted">via Google</span></p>
+        <p className="text-body-sm"><strong>Signed in as {user.email}</strong><br /><span className="text-muted">{viaGoogle ? 'via Google' : 'via email link'}</span></p>
       </div>
-      <form className="win grid gap-4 p-5" onSubmit={(e) => { e.preventDefault(); track('profile_created', { level }); onJoin({ name: name.trim(), level, linkedin: linkedin.trim() || undefined, joined: Date.now() }) }}>
+      <form className="win grid gap-4 p-5" onSubmit={(e) => void submit(e)}>
         <label className="grid gap-1.5">
-          <span className="font-semibold">Your name <span className="font-normal text-muted">(from Google — change it if you like)</span></span>
+          <span className="font-semibold">Your name{viaGoogle && <span className="font-normal text-muted"> (from Google — change it if you like)</span>}</span>
           <input className="field" required minLength={2} autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
         </label>
         <fieldset className="m-0 grid gap-1.5 border-0 p-0">
@@ -138,8 +157,9 @@ function Join({ user, onJoin }: { user: User; onJoin: (p: P) => void }) {
           <span className="font-semibold">LinkedIn <span className="font-normal text-muted">(optional, for credit when you post)</span></span>
           <input className="field" type="url" placeholder="https://linkedin.com/in/…" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} />
         </label>
-        <button type="submit" className="btn w-fit">Make my profile</button>
-        <p className="text-[13px] text-muted">Your Google sign-in is real; level, link and stickies still save in this browser only for now.</p>
+        <button type="submit" className="btn w-fit" disabled={busy} aria-busy={busy}>{busy ? 'Saving…' : 'Make my profile'}</button>
+        {err && <p role="alert" className="text-ui">{err}</p>}
+        <p className="text-[13px] text-muted">Your profile is saved to your account. Stickies and remix shots still save in this browser only for now.</p>
       </form>
     </div>
   )
@@ -213,7 +233,7 @@ function Dashboard({ profile, user, onLeave }: { profile: P; user: User; onLeave
         )}
       </section>
 
-      <button type="button" className="w-fit cursor-pointer border-0 bg-transparent p-0 text-[13px] text-muted underline" onClick={() => { onLeave(); void signOut() }}>Sign out (ends your Google session on this device)</button>
+      <button type="button" className="w-fit cursor-pointer border-0 bg-transparent p-0 text-[13px] text-muted underline" onClick={() => { onLeave(); void signOut() }}>Sign out on this device</button>
     </div>
   )
 }
