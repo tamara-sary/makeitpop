@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { BreakStuff } from '../components/BreakStuff'
+import { PopIsland } from '../components/PopIsland'
 import { Win, useToast } from '../components/ui'
 import { SAMPLE_RANTS } from '../data/days'
 import { useStored } from '../lib/store'
@@ -35,8 +35,8 @@ export default function SteamRoom() {
         <p className="text-[17px]">Ghosted again? Rejected after round 3? You're in the right place. Break some stuff, then say it out loud. Nobody here will ask you to make it pop.</p>
       </header>
 
-      <Win title="break_stuff.exe" bodyClass="p-4 sm:p-5">
-        <BreakStuff />
+      <Win title="pop_island.exe" bodyClass="p-4 sm:p-5">
+        <PopIsland />
       </Win>
 
       <section className="grid gap-4" aria-labelledby="rant-h">

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import { track } from '../lib/analytics'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { DesignPreview } from '../components/DesignPreview'
 import { RemixSteps, ShareStep } from '../components/RemixKit'
@@ -121,6 +122,8 @@ export default function DayPage() {
       onMove={(id, x, y) => setPositions((p) => ({ ...p, [id]: { x, y } }))}
       onAgree={(id) => setAgrees((a) => ({ ...a, [id]: (a[id] ?? 0) + 1 }))}
       onAdd={(text, color, x, y) => {
+        track('sticky_pinned', { day: n, first: locked })
+        if (locked) track('stickies_unlocked', { day: n })
         setMine((m) => [...m, { id: 'u' + Date.now(), name: profile?.name ?? 'You', level: profile?.level ?? 'Mid', tag: 'Other', text, agrees: 0, color, x, y }])
         toast(locked ? `Stuck! ${othersCount} stickies unlocked. Did they see what you saw?` : 'Stuck! Drag it to the right spot.')
       }}
@@ -135,18 +138,19 @@ export default function DayPage() {
       onStart={() => { setView('original'); if (!wide) document.getElementById('challenge-m')?.scrollIntoView({ behavior: 'smooth' }) }} started={briefSeen} />
   )
   const remix = <RemixSteps day={day} topCrit={topCrit} locked={locked} />
-  const startEditing = () => { setAdding(false); setEditing(true); setView('remix') }
+  const startEditing = () => { if (!editing) track('editor_opened'); setAdding(false); setEditing(true); setView('remix') }
   const editor = day.live ? (
     <EditableDesign day={day} editing={editing} ed={ed} />
   ) : (
     <p className="p-6 text-body text-muted">This day's design can't be edited here yet. Grab the files instead.</p>
   )
-  const exportCode = () => { if (ed.doc && day.live) downloadCode(ed.doc, n, day.live) }
+  const exportCode = () => { if (ed.doc && day.live) { downloadCode(ed.doc, n, day.live); track('code_downloaded', { day: n, changes: ed.edits.length }) } }
   const useAsShot = async () => {
     if (!ed.doc) return
     setShotBusy(true)
     try {
       const ok = await saveAsShot(ed.doc, n)
+      if (ok) track('remix_shot_saved', { day: n, source: 'editor', changes: ed.edits.length })
       toast(ok ? 'Saved as your remix shot. It\'s on your profile too.' : 'Your browser is out of space for images. Remove an older shot from your profile.')
     } catch { toast('Couldn\'t render the shot. Try Download code instead.') }
     finally { setShotBusy(false) }
@@ -159,7 +163,7 @@ export default function DayPage() {
       <div className="flex items-center gap-3 p-3">
         <span className="grid h-9 w-9 flex-none place-items-center border-2 border-ink bg-sun font-display text-xl font-extrabold" aria-hidden="true">!</span>
         <strong className="flex-1 whitespace-nowrap font-display text-[17px] leading-tight">Ghosted again?</strong>
-        <button type="button" className="btn btn-sm" onClick={() => navigate('/steam-room')}>Break stuff</button>
+        <button type="button" className="btn btn-sm" onClick={() => { track('steam_room_opened', { from: 'canvas' }); navigate('/steam-room') }}>Break stuff</button>
       </div>
     </section>
   )
@@ -227,7 +231,7 @@ export default function DayPage() {
           editing={editing} setEditing={(v) => { if (v) startEditing(); else { setEditing(false); ed.select(null) } }}
           talkOpen={talkOpen} setTalkOpen={setTalkOpen} talkCount={comments.length}
           agent={<AgentConnect status={agent.status} error={agent.error} seg={barSeg} chatOpen={chatOpen} onToggleChat={() => setChatHidden(chatOpen)}
-            onConnect={(code) => { agent.connect(code); setChatHidden(false); startEditing() }} onDisconnect={agent.disconnect} />} />
+            onConnect={(code) => { agent.connect(code); setChatHidden(false); startEditing() }} onOpen={() => track('ai_connect_opened')} onDisconnect={agent.disconnect} />} />
         <div className="relative flex min-h-0 flex-1 flex-col">
           <Canvas focus={focus} onFocus={setView} sections={sections} avoid={steamOpen && !steamPos && !editing ? STEAM_CARD : undefined} reserveRight={(editing ? 332 : 0) + (chatOpen ? 336 : 0)}>
             {steamOpen && !editing && <div className="absolute z-30" style={{ right: steamPos?.r ?? 16, bottom: steamPos?.b ?? 16 }}>{steam}</div>}
@@ -301,7 +305,7 @@ function Brief({ day, isToday, checked, onCheck, onStart, started }: {
         <p className="text-[18px]">{day.brief}</p>
       )}
       <div>
-        <button type="button" className="btn" onClick={onStart}>{started ? 'Back to the design →' : 'Start the audit →'}</button>
+        <button type="button" className="btn" onClick={() => { track('brief_started'); onStart() }}>{started ? 'Back to the design →' : 'Start the audit →'}</button>
       </div>
     </div>
   )

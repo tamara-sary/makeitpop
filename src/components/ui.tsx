@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useState, type HTMLAttributes, type ReactNode } from 'react'
-import { NavLink, Link, useLocation } from 'react-router-dom'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type HTMLAttributes, type ReactNode } from 'react'
+import { NavLink, Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../lib/auth'
 import { TODAY } from '../data/days'
 import { copyText } from '../lib/store'
 import { useProfile } from '../lib/profile'
@@ -25,6 +26,7 @@ export function Logo({ size = 34, animated = false }: { size?: number | string; 
 
 export function MenuBar() {
   const [profile] = useProfile()
+  const { user } = useAuth()
   const link = ({ isActive }: { isActive: boolean }) =>
     'px-2 py-1 no-underline ' + (isActive ? 'bg-ink text-cream' : 'text-ink hover:bg-sun')
   return (
@@ -36,9 +38,52 @@ export function MenuBar() {
         <NavLink to="/steam-room" className={link}>Steam room</NavLink>
         <span className="ml-auto font-pixel text-[12px]">DAY {String(TODAY).padStart(2, '0')} / 30</span>
         <SoundToggle />
-        <NavLink to="/me" className={link}>{profile ? profile.name : 'Join'}</NavLink>
+        {profile && user ? <AccountMenu name={profile.name} /> : <NavLink to="/me" className={link}>Join</NavLink>}
       </nav>
     </header>
+  )
+}
+
+// Signed-in name in the menu bar: opens "Your profile" and "Sign out".
+// Disclosure pattern (button + list of links), closes on Esc, outside click or route change.
+function AccountMenu({ name }: { name: string }) {
+  const { pathname } = useLocation()
+  // remembers which page it was opened on, so navigating away closes it without an effect
+  const [openOn, setOpenOn] = useState<string | null>(null)
+  const open = openOn === pathname
+  const setOpen = (v: boolean | ((o: boolean) => boolean)) => setOpenOn((typeof v === 'function' ? v(open) : v) ? pathname : null)
+  const box = useRef<HTMLDivElement>(null)
+  const btn = useRef<HTMLButtonElement>(null)
+  const nav = useNavigate()
+  const { signOut } = useAuth()
+  const toast = useToast()
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node)) setOpenOn(null) }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpenOn(null); btn.current?.focus() } }
+    document.addEventListener('pointerdown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey) }
+  }, [open])
+
+  const item = 'block w-full cursor-pointer border-0 bg-transparent px-3 py-2 text-left text-body font-semibold text-ink no-underline hover:bg-sun focus-visible:bg-sun'
+  return (
+    <div ref={box} className="relative">
+      <button ref={btn} type="button" aria-expanded={open} aria-controls="account-menu" onClick={() => setOpen((o) => !o)}
+        className={'flex cursor-pointer items-center gap-1.5 border-0 px-2 py-1 font-semibold ' + (open || pathname === '/me' ? 'bg-ink text-cream' : 'bg-transparent text-ink hover:bg-sun')}>
+        <span className="max-w-[14ch] truncate">{name}</span>
+        <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true" className={open ? 'rotate-180' : ''}><path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="2" /></svg>
+      </button>
+      {open && (
+        <ul id="account-menu" className="absolute right-0 top-full z-40 m-0 mt-2 min-w-44 list-none border-2 border-ink bg-paper p-0 shadow-pop-sm">
+          <li><Link to="/me" className={item}>Your profile</Link></li>
+          <li className="border-t-2 border-ink">
+            <button type="button" className={item} onClick={async () => { setOpen(false); await signOut(); nav('/'); toast('Signed out. See you tomorrow!') }}>Sign out</button>
+          </li>
+        </ul>
+      )}
+    </div>
   )
 }
 

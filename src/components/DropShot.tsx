@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type DragEvent } from 'react'
+import { track } from '../lib/analytics'
 import { Link } from 'react-router-dom'
 import { save, useStored } from '../lib/store'
 import { shotKey, toShot, type Shot } from '../lib/profile'
@@ -20,7 +21,7 @@ export function DropShot({ n }: { n: number }) {
     try {
       const s = await toShot(file)
       if (!save(shotKey(n), s)) toast('Your browser is out of space for images. Remove an older shot from your profile.')
-      else toast('Shot added. It\'s on your profile too.')
+      else { toast('Shot added. It\'s on your profile too.'); track('remix_shot_saved', { day: n, source: 'upload' }) }
     } catch {
       toast('That file isn\'t an image. Drop a PNG, JPG or WebP.')
     } finally {

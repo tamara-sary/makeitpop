@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { track } from '../lib/analytics'
 import { load, save } from '../lib/store'
 import { Link } from 'react-router-dom'
 import { Sticky } from '../components/Stickies'
@@ -61,7 +62,7 @@ export function PopButton({ to = CTA.to, children = CTA.label, tone = 'ink', siz
   const tones = { ink: 'bg-ink text-pop-sun', sun: 'bg-pop-sun text-ink', paper: 'bg-paper text-ink' }
   const sizes = { lg: 'px-7 py-4 text-lead', md: 'px-5 py-3 text-body' }
   return (
-    <Link to={to} data-sound="cta"
+    <Link to={to} data-sound="cta" onClick={() => track('landing_cta_clicked', { to })}
       className={'inline-flex items-center gap-3 border-2 border-ink font-sans font-extrabold no-underline shadow-pop-lg transition-[translate,box-shadow] duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-pop-sm ' + tones[tone] + ' ' + sizes[size]}>
       {children} <span aria-hidden="true">→</span>
     </Link>

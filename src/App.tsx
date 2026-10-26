@@ -1,12 +1,32 @@
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { initAnalytics } from './lib/analytics'
+import { ConsentCard } from './components/ConsentCard'
 import { useEffect, type ReactNode } from 'react'
 import { MenuBar, PrototypeNote, ToastProvider } from './components/ui'
+import { AuthProvider } from './lib/auth'
 import { installClickSounds } from './lib/sound'
+import { Analytics } from '@vercel/analytics/react'
+import AuthCallback from './pages/AuthCallback'
 import DayPage from './pages/DayPage'
 import Archive from './pages/Archive'
 import SteamRoom from './pages/SteamRoom'
 import Home from './pages/Home'
 import Profile from './pages/Profile'
+
+// Supabase sends people to the Site URL (often "/") when /auth/callback isn't on its Redirect URLs list.
+// If a sign-in token or error lands on any other page, hand it to the callback instead of dropping it.
+function CatchAuthRedirect() {
+  const { pathname, search, hash } = useLocation()
+  const nav = useNavigate()
+  useEffect(() => {
+    if (pathname === '/auth/callback') return
+    const q = new URLSearchParams(search)
+    if (/(^|[#&])(access_token|error_description)=/.test(hash) || (q.has('code') && pathname === '/')) {
+      nav('/auth/callback' + search + hash, { replace: true })
+    }
+  }, [pathname, search, hash, nav])
+  return null
+}
 
 function ScrollTop() {
   const { pathname } = useLocation()
@@ -25,9 +45,12 @@ function Main({ children }: { children: ReactNode }) {
 
 export default function App() {
   useEffect(() => installClickSounds(), [])
+  useEffect(() => initAnalytics(), [])
   return (
     <BrowserRouter>
+      <AuthProvider>
       <ToastProvider>
+        <CatchAuthRedirect />
         <ScrollTop />
         <MenuBar />
         <Main>
@@ -38,12 +61,17 @@ export default function App() {
             <Route path="/archive" element={<Archive />} />
             <Route path="/steam-room" element={<SteamRoom />} />
             <Route path="/me" element={<Profile />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/how-it-works" element={<Navigate to="/" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <PrototypeNote />
         </Main>
       </ToastProvider>
+      </AuthProvider>
+      {/* Vercel Web Analytics: cookieless page views (no consent banner needed) */}
+      <Analytics />
+      <ConsentCard />
     </BrowserRouter>
   )
 }

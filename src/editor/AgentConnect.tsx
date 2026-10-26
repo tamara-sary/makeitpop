@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { track } from '../lib/analytics'
 import { CopyButton } from '../components/ui'
 import type { AgentStatus } from './agentBridge'
 
@@ -6,14 +7,15 @@ import type { AgentStatus } from './agentBridge'
 // A popover (not a modal): the canvas stays visible, so the user can watch the agent's edits arrive.
 export const INSTALL_CMD = 'claude mcp add makeitpop -- npx -y makeitpop-mcp-server'
 
-export function AgentConnect({ status, error, onConnect, onDisconnect, seg, chatOpen, onToggleChat }: {
-  status: AgentStatus; error: string; onConnect: (code: string) => void; onDisconnect: () => void; seg: (on: boolean) => string
+export function AgentConnect({ status, error, onConnect, onDisconnect, seg, onOpen, chatOpen, onToggleChat }: {
+  status: AgentStatus; error: string; onConnect: (code: string) => void; onDisconnect: () => void; seg: (on: boolean) => string; onOpen?: () => void
   chatOpen: boolean; onToggleChat: () => void
 }) {
   const [open, setOpen] = useState(false)
   const [code, setCode] = useState('')
   const on = status === 'connected'
   // once paired, get out of the way so the user watches the canvas, not the dialog
+  useEffect(() => { if (on) track('ai_connected') }, [on])
   useEffect(() => { if (on) { const t = setTimeout(() => setOpen(false), 1200); return () => clearTimeout(t) } }, [on])
   // Esc or a click outside closes it, like every other card on the canvas
   const box = useRef<HTMLDivElement>(null)
@@ -33,7 +35,7 @@ export function AgentConnect({ status, error, onConnect, onDisconnect, seg, chat
   return (
     <div ref={box} className="relative">
       <button ref={btn} type="button" className={seg(on || open)} aria-expanded={on ? chatOpen : open} aria-controls={on ? undefined : 'agent-connect'}
-        title={on ? (chatOpen ? 'Hide chat' : 'Chat with your AI') : undefined} onClick={() => (on ? onToggleChat() : setOpen(!open))}>
+        title={on ? (chatOpen ? 'Hide chat' : 'Chat with your AI') : undefined} onClick={() => { if (on) { onToggleChat(); return } if (!open) onOpen?.(); setOpen(!open) }}>
         <span className={'h-2 w-2 rounded-full ' + (on ? 'bg-leaf' : 'bg-chrome-border')} aria-hidden="true" />
         {on ? 'AI connected' : 'Connect your AI'}
       </button>
