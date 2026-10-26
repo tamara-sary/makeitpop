@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CopyButton } from '../components/ui'
 import type { AgentStatus } from './agentBridge'
 
@@ -14,9 +14,24 @@ export function AgentConnect({ status, error, onConnect, onDisconnect, seg }: {
   const on = status === 'connected'
   // once paired, get out of the way so the user watches the canvas, not the dialog
   useEffect(() => { if (on) { const t = setTimeout(() => setOpen(false), 1200); return () => clearTimeout(t) } }, [on])
+  // Esc or a click outside closes it, like every other card on the canvas
+  const box = useRef<HTMLDivElement>(null)
+  const btn = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false) }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(false); btn.current?.focus() } }
+    // clicks inside the design iframe never reach this document; the window losing focus to it is the signal
+    const onBlur = () => setTimeout(() => { if (document.activeElement?.tagName === 'IFRAME') setOpen(false) })
+    document.addEventListener('pointerdown', onDown)
+    document.addEventListener('keydown', onKey)
+    window.addEventListener('blur', onBlur)
+    return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey); window.removeEventListener('blur', onBlur) }
+  }, [open])
+  const close = () => { setOpen(false); btn.current?.focus() }
   return (
-    <div className="relative">
-      <button type="button" className={seg(on || open)} aria-expanded={open} aria-controls="agent-connect" onClick={() => setOpen(!open)}>
+    <div ref={box} className="relative">
+      <button ref={btn} type="button" className={seg(on || open)} aria-expanded={open} aria-controls="agent-connect" onClick={() => setOpen(!open)}>
         <span className={'h-2 w-2 rounded-full ' + (on ? 'bg-leaf' : 'bg-chrome-border')} aria-hidden="true" />
         {on ? 'AI connected' : 'Connect your AI'}
       </button>
@@ -25,13 +40,19 @@ export function AgentConnect({ status, error, onConnect, onDisconnect, seg }: {
           className="absolute right-0 top-[calc(100%+8px)] z-40 grid w-[360px] gap-4 rounded-chrome-lg border border-chrome-border bg-chrome-bg p-4 text-chrome-text shadow-pop-sm">
           {on ? (
             <>
-              <p className="text-body font-semibold">Your AI is connected.</p>
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-body font-semibold">Your AI is connected.</p>
+                <button type="button" className="inline-grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-chrome border-0 bg-transparent text-chrome-text hover:bg-chrome-subtle" aria-label="Close" onClick={close}><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="2" /></svg></button>
+              </div>
               <p className="text-body-sm text-muted">Ask it to remix today's design. Its changes appear live in "Your remix", marked as agent changes, and you can undo any of them.</p>
               <button type="button" className="btn btn-ghost btn-sm w-fit" onClick={() => { onDisconnect(); setOpen(false) }}>Disconnect</button>
             </>
           ) : (
             <>
-              <p className="text-body font-semibold">Remix with Claude Code, Cursor or any MCP agent</p>
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-body font-semibold">Remix with Claude Code, Cursor or any MCP agent</p>
+                <button type="button" className="inline-grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-chrome border-0 bg-transparent text-chrome-text hover:bg-chrome-subtle" aria-label="Close" onClick={close}><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="2" /></svg></button>
+              </div>
               <ol className="m-0 grid list-none gap-3 p-0 text-body-sm">
                 <li className="grid gap-1.5">
                   <span><b>1.</b> Add Make It Pop to your agent (once):</span>

@@ -230,7 +230,7 @@ export default function DayPage() {
             {steamOpen && !editing && <div className="absolute z-30" style={{ right: steamPos?.r ?? 16, bottom: steamPos?.b ?? 16 }}>{steam}</div>}
             {editing && (
               <div className="pointer-events-none absolute bottom-4 right-4 top-4 z-30 flex items-start">
-                <Inspector ed={ed} onExportCode={exportCode} onUseAsShot={useAsShot} busy={shotBusy} />
+                <Inspector ed={ed} onExportCode={exportCode} onUseAsShot={useAsShot} busy={shotBusy} onClose={() => { setEditing(false); ed.select(null) }} />
               </div>
             )}
           </Canvas>
@@ -371,7 +371,7 @@ function CanvasBar({ day, view, setView, locked, count, hidden, setHidden, addin
     'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-semibold cursor-pointer border-0 whitespace-nowrap ' + (on ? 'bg-[#3b6ef5] text-white' : 'bg-transparent text-[#2b2b2b] hover:bg-black/5')
   const group = 'flex rounded-lg border border-[#e4ded4] bg-[#f7f5f2] p-0.5'
   return (
-    <div className="relative z-30 flex items-center gap-3 border-b border-[#e4ded4] bg-white px-4 py-2 text-[#2b2b2b]">
+    <div className="relative z-40 flex items-center gap-3 border-b border-[#e4ded4] bg-white px-4 py-2 text-[#2b2b2b]">
       <strong className="min-w-0 flex-1 truncate text-[14px]">Day {day.n} · {day.title}</strong>
       <nav className={group} aria-label="Canvas sections">
         {SECTION_TABS.map((t) => (

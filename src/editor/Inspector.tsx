@@ -63,7 +63,7 @@ function Swatches({ doc, current, onPick }: { doc: Document; current: string; on
   )
 }
 
-export function Inspector({ ed, onExportCode, onUseAsShot, busy }: { ed: EditorApi; onExportCode: () => void; onUseAsShot: () => void; busy: boolean }) {
+export function Inspector({ ed, onExportCode, onUseAsShot, busy, onClose }: { ed: EditorApi; onExportCode: () => void; onUseAsShot: () => void; busy: boolean; onClose: () => void }) {
   const [tab, setTab] = useState<'element' | 'palette'>('element')
   const el = ed.sel
   const doc = ed.doc
@@ -91,6 +91,7 @@ export function Inspector({ ed, onExportCode, onUseAsShot, busy }: { ed: EditorA
         <span className="ml-auto flex gap-1">
           <button type="button" className={btn + ' w-7'} onClick={ed.undo} disabled={!ed.edits.length} title="Undo (⌘Z)" aria-label="Undo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5" /><path d="M4 9h10a6 6 0 0 1 0 12h-3" /></svg></button>
           <button type="button" className={btn + ' w-7'} onClick={ed.redo} disabled={!ed.canRedo} title="Redo (⇧⌘Z)" aria-label="Redo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 14l5-5-5-5" /><path d="M20 9H10a6 6 0 0 0 0 12h3" /></svg></button>
+          <button type="button" className={btn + ' w-7'} onClick={onClose} title="Close (your edits stay)" aria-label="Close inspector and stop editing"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="2" /></svg></button>
         </span>
       </div>
 
