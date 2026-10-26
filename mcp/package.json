@@ -1,6 +1,6 @@
 {
   "name": "makeitpop-mcp-server",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for Make It Pop: remix today's design with Claude, live in the Make It Pop editor.",
   "type": "module",
   "bin": {

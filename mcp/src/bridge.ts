@@ -9,6 +9,9 @@ const ALLOWED_ORIGINS = [/^https:\/\/(www\.)?makeitpop\.work$/, /^http:\/\/(loca
 export type EditorInfo = { day: number; title: string; url: string; connectedAt: number }
 
 type Pending = { resolve: (v: unknown) => void; reject: (e: Error) => void; timer: NodeJS.Timeout }
+export type ChatMessage = { id: string; text: string; at: number }
+const MAX_INBOX = 20
+const MAX_CHAT = 2000
 
 export class EditorBridge {
   readonly code = String(randomInt(100000, 1000000)) // 6 digits, new every server start
@@ -18,6 +21,9 @@ export class EditorBridge {
   private info: EditorInfo | null = null
   private pending = new Map<number, Pending>()
   private nextId = 1
+  // Chat typed in the Make It Pop panel, waiting for the agent to pick it up (makeitpop_wait_for_message)
+  private inbox: ChatMessage[] = []
+  private waiter: { resolve: (m: ChatMessage | null) => void; timer: NodeJS.Timeout } | null = null
   listenError: string | null = null
 
   constructor(port: number) { this.port = port }
@@ -41,7 +47,7 @@ export class EditorBridge {
     let paired = false
     const kick = setTimeout(() => { if (!paired) ws.close(4001, 'pairing timeout') }, 30_000)
     ws.on('message', (raw) => {
-      let msg: { type?: string; code?: string; day?: number; title?: string; url?: string; id?: number; result?: unknown; error?: string }
+      let msg: { type?: string; code?: string; day?: number; title?: string; url?: string; id?: number; result?: unknown; error?: string; text?: unknown; chatId?: unknown }
       try { msg = JSON.parse(String(raw)) } catch { return }
       if (!paired) {
         if (msg.type === 'hello' && msg.code === this.code) {
@@ -51,11 +57,20 @@ export class EditorBridge {
           this.socket = ws
           this.info = { day: Number(msg.day) || 0, title: String(msg.title ?? ''), url: String(msg.url ?? ''), connectedAt: Date.now() }
           ws.send(JSON.stringify({ type: 'paired' }))
+          this.sendState()
           console.error(`[makeitpop] editor connected: Day ${this.info.day}`)
         } else {
           ws.send(JSON.stringify({ type: 'rejected', reason: 'wrong pairing code' }))
           ws.close(4003, 'wrong pairing code')
         }
+        return
+      }
+      if (msg.type === 'chat' && typeof msg.text === 'string') {
+        const text = msg.text.trim().slice(0, MAX_CHAT)
+        if (!text) return
+        const m: ChatMessage = { id: String(msg.chatId ?? Date.now()), text, at: Date.now() }
+        if (this.waiter) { const w = this.waiter; this.waiter = null; clearTimeout(w.timer); this.ack(m); w.resolve(m) }
+        else { this.inbox.push(m); if (this.inbox.length > MAX_INBOX) this.inbox.shift() }
         return
       }
       if (typeof msg.id === 'number' && this.pending.has(msg.id)) {
@@ -68,8 +83,30 @@ export class EditorBridge {
     })
     ws.on('close', () => {
       clearTimeout(kick)
-      if (this.socket === ws) { this.socket = null; this.info = null; console.error('[makeitpop] editor disconnected') }
+      if (this.socket === ws) { this.socket = null; this.info = null; this.inbox = []; console.error('[makeitpop] editor disconnected') }
     })
+  }
+
+  // ---- chat ----
+  private sendState() { this.socket?.send(JSON.stringify({ type: 'agent_state', listening: !!this.waiter })) }
+  private ack(m: ChatMessage) { this.socket?.send(JSON.stringify({ type: 'chat_ack', chatId: m.id })) }
+
+  // Resolves with the next chat message, or null after timeoutMs (the agent should then call again).
+  waitForMessage(timeoutMs: number): Promise<ChatMessage | null> {
+    const next = this.inbox.shift()
+    if (next) { this.ack(next); return Promise.resolve(next) }
+    if (this.waiter) { clearTimeout(this.waiter.timer); this.waiter.resolve(null) }
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => { if (this.waiter?.timer === timer) { this.waiter = null; this.sendState() } resolve(null) }, timeoutMs)
+      this.waiter = { resolve, timer }
+      this.sendState()
+    })
+  }
+
+  reply(text: string): boolean {
+    if (!this.socket) return false
+    this.socket.send(JSON.stringify({ type: 'chat_reply', text: text.slice(0, MAX_CHAT) }))
+    return true
   }
 
   status() { return { connected: !!this.socket, editor: this.info, code: this.code, port: this.port, listenError: this.listenError } }

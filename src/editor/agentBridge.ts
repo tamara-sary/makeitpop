@@ -9,6 +9,7 @@ import type { EditorApi } from './useEditor'
 // with the same edit records a human makes (live, undoable, autosaved).
 
 export type AgentStatus = 'off' | 'connecting' | 'connected' | 'error'
+export type ChatLine = { id: string; from: 'you' | 'ai'; text: string; at: number; picked?: boolean }
 export type StickyOut = { name: string; level: string; text: string; agrees: number; x?: number; y?: number; mine?: boolean }
 
 const STYLE_PROPS = new Set(['color', 'background-color', 'font-size', 'font-weight', 'line-height', 'letter-spacing', 'padding', 'gap', 'margin', 'border-radius', 'text-transform'])
@@ -19,6 +20,10 @@ export function useAgentBridge({ ed, day, title, liveUrl, stickies, locked, hidd
 }) {
   const [status, setStatus] = useState<AgentStatus>('off')
   const [error, setError] = useState('')
+  // Chat with the user's own agent: the panel only relays text; the agent (on their machine) does the work
+  const [chat, setChat] = useState<ChatLine[]>([])
+  const [listening, setListening] = useState(false)
+  const [working, setWorking] = useState(false)
   const ws = useRef<WebSocket | null>(null)
   const ctx = useRef({ ed, stickies, locked, hiddenCount, liveUrl })
   ctx.current = { ed, stickies, locked, hiddenCount, liveUrl }
@@ -111,9 +116,17 @@ export function useAgentBridge({ ed, day, title, liveUrl, stickies, locked, hidd
     ws.current = sock
     sock.onopen = () => sock.send(JSON.stringify({ type: 'hello', code: code.trim(), day, title, url: location.href }))
     sock.onmessage = async (ev) => {
-      let msg: { type?: string; reason?: string; id?: number; method?: string; params?: Record<string, unknown> }
+      let msg: { type?: string; reason?: string; id?: number; method?: string; params?: Record<string, unknown>; listening?: boolean; chatId?: string; text?: string }
       try { msg = JSON.parse(String(ev.data)) } catch { return }
       if (msg.type === 'paired') { setStatus('connected'); save('agent-last', Date.now()); return }
+      if (msg.type === 'agent_state') { setListening(!!msg.listening); return }
+      if (msg.type === 'chat_ack') { setWorking(true); setChat((c) => c.map((l) => (l.id === msg.chatId ? { ...l, picked: true } : l))); return }
+      if (msg.type === 'chat_reply' && typeof msg.text === 'string') {
+        const text = msg.text
+        setWorking(false)
+        setChat((c) => [...c, { id: 'a' + Date.now() + Math.random(), from: 'ai', text, at: Date.now() }])
+        return
+      }
       if (msg.type === 'rejected') { setStatus('error'); setError('Wrong pairing code. Ask your agent for the current code (it changes each time the server starts).'); return }
       if (typeof msg.id === 'number' && msg.method) {
         try { sock.send(JSON.stringify({ id: msg.id, result: await handle(msg.method, msg.params ?? {}) })) }
@@ -121,11 +134,20 @@ export function useAgentBridge({ ed, day, title, liveUrl, stickies, locked, hidd
       }
     }
     sock.onerror = () => { setStatus('error'); setError(`Can't reach the Make It Pop MCP server on this computer (port ${port}). Is it installed and is your agent running?`) }
-    sock.onclose = () => { if (ws.current === sock) { setStatus((s) => (s === 'error' ? s : 'off')); ws.current = null } }
+    sock.onclose = () => { if (ws.current === sock) { setStatus((s) => (s === 'error' ? s : 'off')); setListening(false); setWorking(false); ws.current = null } }
   }, [day, title, port, handle])
 
-  const disconnect = useCallback(() => { ws.current?.close(); ws.current = null; setStatus('off') }, [])
+  const disconnect = useCallback(() => { ws.current?.close(); ws.current = null; setStatus('off'); setListening(false); setWorking(false) }, [])
+
+  const sendChat = useCallback((text: string) => {
+    const t = text.trim().slice(0, 2000)
+    if (!t || ws.current?.readyState !== WebSocket.OPEN) return false
+    const id = 'u' + Date.now() + Math.random().toString(36).slice(2, 6)
+    ws.current.send(JSON.stringify({ type: 'chat', chatId: id, text: t }))
+    setChat((c) => [...c, { id, from: 'you', text: t, at: Date.now() }])
+    return true
+  }, [])
   useEffect(() => () => ws.current?.close(), [])
 
-  return { status, error, connect, disconnect }
+  return { status, error, connect, disconnect, chat, listening, working, sendChat }
 }

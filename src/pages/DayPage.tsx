@@ -15,6 +15,7 @@ import { Inspector } from '../editor/Inspector'
 import { downloadCode, saveAsShot } from '../editor/export'
 import { useAgentBridge } from '../editor/agentBridge'
 import { AgentConnect } from '../editor/AgentConnect'
+import { AgentChat } from '../editor/AgentChat'
 import { useProfile } from '../lib/profile'
 
 const DESIGN_W = 1392 // Day 1 export width; the original section is sized to show it at 100%
@@ -30,6 +31,7 @@ export default function DayPage() {
   const [hiddenPref, setHidden] = useState(false)
   // Editor V1: "Your remix" is an editable copy of the day's design (desktop only)
   const [editing, setEditing] = useState(false)
+  const [chatHidden, setChatHidden] = useState(false) // chat shows while an agent is connected, unless the user closed it
   const [shotBusy, setShotBusy] = useState(false)
   const ed = useEditor(n)
   const [profile] = useProfile()
@@ -97,6 +99,7 @@ export default function DayPage() {
     ed, day: n, title: day?.title ?? '', liveUrl: day?.live, locked, hiddenCount: othersCount,
     stickies: crits.map((c) => ({ name: c.name, level: c.level, text: c.text, agrees: c.agrees, x: c.x, y: c.y, mine: !c.sample })),
   })
+  const chatOpen = agent.status === 'connected' && !chatHidden
 
   if (!day || n > TODAY) return <Navigate to="/archive" replace />
   const isToday = n === TODAY
@@ -223,14 +226,20 @@ export default function DayPage() {
           adding={adding} setAdding={(v) => { if (v) { setEditing(false); if (view !== 'original') setView('original') } setAdding(v) }} steamOpen={steamOpen} setSteamOpen={setSteamOpen}
           editing={editing} setEditing={(v) => { if (v) startEditing(); else { setEditing(false); ed.select(null) } }}
           talkOpen={talkOpen} setTalkOpen={setTalkOpen} talkCount={comments.length}
-          agent={<AgentConnect status={agent.status} error={agent.error} seg={barSeg}
-            onConnect={(code) => { agent.connect(code); startEditing() }} onDisconnect={agent.disconnect} />} />
+          agent={<AgentConnect status={agent.status} error={agent.error} seg={barSeg} chatOpen={chatOpen} onToggleChat={() => setChatHidden(chatOpen)}
+            onConnect={(code) => { agent.connect(code); setChatHidden(false); startEditing() }} onDisconnect={agent.disconnect} />} />
         <div className="relative flex min-h-0 flex-1 flex-col">
-          <Canvas focus={focus} onFocus={setView} sections={sections} avoid={steamOpen && !steamPos && !editing ? STEAM_CARD : undefined} reserveRight={editing ? 332 : 0}>
+          <Canvas focus={focus} onFocus={setView} sections={sections} avoid={steamOpen && !steamPos && !editing ? STEAM_CARD : undefined} reserveRight={(editing ? 332 : 0) + (chatOpen ? 336 : 0)}>
             {steamOpen && !editing && <div className="absolute z-30" style={{ right: steamPos?.r ?? 16, bottom: steamPos?.b ?? 16 }}>{steam}</div>}
             {editing && (
               <div className="pointer-events-none absolute bottom-4 right-4 top-4 z-30 flex items-start">
                 <Inspector ed={ed} onExportCode={exportCode} onUseAsShot={useAsShot} busy={shotBusy} onClose={() => { setEditing(false); ed.select(null) }} />
+              </div>
+            )}
+            {chatOpen && (
+              <div className="pointer-events-none absolute bottom-4 top-4 z-30 flex items-start" style={{ right: editing ? 332 : 16 }}>
+                <AgentChat chat={agent.chat} listening={agent.listening} working={agent.working} onSend={agent.sendChat}
+                  onClose={() => setChatHidden(true)} onDisconnect={agent.disconnect} />
               </div>
             )}
           </Canvas>

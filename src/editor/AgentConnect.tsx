@@ -6,8 +6,9 @@ import type { AgentStatus } from './agentBridge'
 // A popover (not a modal): the canvas stays visible, so the user can watch the agent's edits arrive.
 export const INSTALL_CMD = 'claude mcp add makeitpop -- npx -y makeitpop-mcp-server'
 
-export function AgentConnect({ status, error, onConnect, onDisconnect, seg }: {
+export function AgentConnect({ status, error, onConnect, onDisconnect, seg, chatOpen, onToggleChat }: {
   status: AgentStatus; error: string; onConnect: (code: string) => void; onDisconnect: () => void; seg: (on: boolean) => string
+  chatOpen: boolean; onToggleChat: () => void
 }) {
   const [open, setOpen] = useState(false)
   const [code, setCode] = useState('')
@@ -31,11 +32,12 @@ export function AgentConnect({ status, error, onConnect, onDisconnect, seg }: {
   const close = () => { setOpen(false); btn.current?.focus() }
   return (
     <div ref={box} className="relative">
-      <button ref={btn} type="button" className={seg(on || open)} aria-expanded={open} aria-controls="agent-connect" onClick={() => setOpen(!open)}>
+      <button ref={btn} type="button" className={seg(on || open)} aria-expanded={on ? chatOpen : open} aria-controls={on ? undefined : 'agent-connect'}
+        title={on ? (chatOpen ? 'Hide chat' : 'Chat with your AI') : undefined} onClick={() => (on ? onToggleChat() : setOpen(!open))}>
         <span className={'h-2 w-2 rounded-full ' + (on ? 'bg-leaf' : 'bg-chrome-border')} aria-hidden="true" />
         {on ? 'AI connected' : 'Connect your AI'}
       </button>
-      {open && (
+      {open && !on && (
         <div id="agent-connect" role="dialog" aria-label="Connect your AI agent"
           className="absolute right-0 top-[calc(100%+8px)] z-40 grid w-[360px] gap-4 rounded-chrome-lg border border-chrome-border bg-chrome-bg p-4 text-chrome-text shadow-pop-sm">
           {on ? (
@@ -59,7 +61,7 @@ export function AgentConnect({ status, error, onConnect, onDisconnect, seg }: {
                   <code className="block overflow-x-auto whitespace-nowrap rounded-chrome bg-chrome-subtle px-2 py-1.5 text-caption">{INSTALL_CMD}</code>
                   <CopyButton text={INSTALL_CMD} label="Copy command" className="w-fit cursor-pointer border-0 bg-transparent p-0 text-caption font-semibold underline" />
                 </li>
-                <li><b>2.</b> Ask your agent: <i>“Connect to Make It Pop”</i>. It shows a 6-digit code.</li>
+                <li><b>2.</b> Ask your agent: <i>“Connect to Make It Pop and listen”</i>. It shows a 6-digit code.</li>
                 <li className="grid gap-1.5">
                   <label htmlFor="agent-code"><b>3.</b> Enter the code:</label>
                   <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (code.trim().length === 6) onConnect(code) }}>
