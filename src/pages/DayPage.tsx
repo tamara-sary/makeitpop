@@ -137,7 +137,7 @@ export default function DayPage() {
   const remix = <RemixSteps day={day} topCrit={topCrit} locked={locked} />
   const startEditing = () => { setAdding(false); setEditing(true); setView('remix') }
   const editor = day.live ? (
-    <EditableDesign day={day} editing={editing} ed={ed} onEditRequest={startEditing} />
+    <EditableDesign day={day} editing={editing} ed={ed} />
   ) : (
     <p className="p-6 text-body text-muted">This day's design can't be edited here yet. Grab the files instead.</p>
   )

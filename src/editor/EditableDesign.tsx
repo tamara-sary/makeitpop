@@ -6,7 +6,7 @@ import type { EditorApi } from './useEditor'
 // "Your remix": an editable copy of the day's design (the original section never changes).
 // Edit mode: hover outlines an element, click selects it, double-click rewrites text in place,
 // ↑ / ↓ walk to the parent / first child, Esc deselects. Outside edit mode it's look-only.
-export function EditableDesign({ day, editing, ed, onEditRequest }: { day: Day; editing: boolean; ed: EditorApi; onEditRequest: () => void }) {
+export function EditableDesign({ day, editing, ed }: { day: Day; editing: boolean; ed: EditorApi }) {
   const frame = useRef<HTMLIFrameElement>(null)
   const [h, setH] = useState(988)
   const [hoverLabel, setHoverLabel] = useState<{ text: string; x: number; y: number } | null>(null)
@@ -152,10 +152,6 @@ export function EditableDesign({ day, editing, ed, onEditRequest }: { day: Day; 
         // element name chip, like a design tool's hover label (sits in design coordinates, so it zooms with it)
         <span className="pointer-events-none absolute z-10 -translate-y-full bg-chrome-selected px-1.5 py-0.5 text-caption font-semibold text-paper"
           style={{ left: hoverLabel.x, top: hoverLabel.y - 4 }}>{hoverLabel.text}</span>
-      )}
-      {!editing && (
-        <button type="button" onClick={onEditRequest}
-          className="btn btn-sun absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">Edit this copy</button>
       )}
     </div>
   )
