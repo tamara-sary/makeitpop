@@ -8,7 +8,8 @@ Claude Code ──stdio──▶ makeitpop-mcp-server ──ws://127.0.0.1 (pair
 
 ## Use it
 1. Add it to your agent (once):
-   - published: `claude mcp add makeitpop -- npx -y makeitpop-mcp-server`
+   - hosted on makeitpop.work: `claude mcp add makeitpop -- npx -y --package=https://makeitpop.work/mcp/makeitpop-mcp-server-0.2.0.tgz makeitpop-mcp-server`
+     (rebuild the file with `npm run mcp:pack` in the site root; bump the version in mcp/package.json and INSTALL_CMD together)
    - from this repo: `cd mcp && npm i && npm run build`, then `claude mcp add makeitpop -- node /absolute/path/to/mcp/dist/index.js`
 2. Open https://www.makeitpop.work/today on a laptop (Chrome, Edge or Firefox).
 3. Ask your agent: "Connect to Make It Pop". It shows a 6-digit code.

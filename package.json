@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "tokens": "node scripts/build-tokens.mjs",
+    "mcp:pack": "cd mcp && npm run build && npm pack --pack-destination ../public/mcp",
     "tokens:check": "node scripts/check-tokens.mjs",
     "predev": "node scripts/sync-days.mjs",
     "dev": "vite",

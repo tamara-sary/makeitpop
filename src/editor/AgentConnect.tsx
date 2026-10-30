@@ -5,7 +5,8 @@ import type { AgentStatus } from './agentBridge'
 
 // "Connect your AI": pair this editor tab with the Make It Pop MCP server running next to the user's agent.
 // A popover (not a modal): the canvas stays visible, so the user can watch the agent's edits arrive.
-export const INSTALL_CMD = 'claude mcp add makeitpop -- npx -y makeitpop-mcp-server'
+// Served from our own site (public/mcp, rebuilt with `npm run mcp:pack`), so no npm registry account is needed.
+export const INSTALL_CMD = 'claude mcp add makeitpop -- npx -y --package=https://makeitpop.work/mcp/makeitpop-mcp-server-0.2.0.tgz makeitpop-mcp-server'
 
 export function AgentConnect({ status, error, onConnect, onDisconnect, seg, onOpen, chatOpen, onToggleChat }: {
   status: AgentStatus; error: string; onConnect: (code: string) => void; onDisconnect: () => void; seg: (on: boolean) => string; onOpen?: () => void
